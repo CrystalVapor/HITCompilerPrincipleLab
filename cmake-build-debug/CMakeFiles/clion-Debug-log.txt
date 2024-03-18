@@ -1,0 +1,4 @@
+C:\Windows\system32\wsl.exe --distribution Ubuntu --exec /bin/bash -c "export CMAKE_COLOR_DIAGNOSTICS=ON && export CLION_IDE=TRUE && export JETBRAINS_IDE=TRUE && cd /home/crystal/compilerPriciple/Lab1/cmake-build-debug && /usr/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G 'CodeBlocks - Unix Makefiles' -S /home/crystal/compilerPriciple/Lab1 -B /home/crystal/compilerPriciple/Lab1/cmake-build-debug"
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/crystal/compilerPriciple/Lab1/cmake-build-debug

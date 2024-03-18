@@ -1,0 +1,2 @@
+/usr/bin/ar qc lib/libLexer.a CMakeFiles/Lexer.dir/C_Scanner.c.o
+/usr/bin/ranlib lib/libLexer.a
