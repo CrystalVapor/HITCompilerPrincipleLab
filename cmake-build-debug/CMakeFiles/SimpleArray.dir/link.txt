@@ -1,2 +1,0 @@
-/usr/bin/ar qc lib/libSimpleArray.a CMakeFiles/SimpleArray.dir/src/SimpleArray.c.o
-/usr/bin/ranlib lib/libSimpleArray.a

@@ -1,0 +1,22 @@
+DEBUG_PARSER_NODES:
+TYPE: int
+Specifier (1)
+ID: main
+LP
+RP
+FunDec (1)
+LC
+TYPE: int
+Specifier (3)
+ID: i
+VarDec (3)
+ASSIGNOP
+SEMI
+TYPE: int
+Specifier (4)
+ID: j
+ASSIGNOP
+VarDec (4)
+ExtDecList (4)
+SEMI
+RC

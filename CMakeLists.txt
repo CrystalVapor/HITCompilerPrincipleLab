@@ -7,8 +7,7 @@ set(CMAKE_C_STANDARD 11)
 # ~~~~~~Variables~~~~~~
 set(RequiredMinimumVersion_Flex 2.5.35)
 set(RequiredMinimumVersion_Bison 2.5.0)
-set(MainTarget Lab1)
-set(MainSourceFile main.c)
+set(Lab1Source src/Lab1.c)
 # ~~~~~~End of Variables~~~~~~
 
 # Find Flex and Bison
@@ -39,20 +38,23 @@ aux_source_directory(src SRC)
 include_directories(include)
 
 # Generate lexer and parser
-flex_target(Lexer src/C_Scanner.l ${CMAKE_CURRENT_BINARY_DIR}/C_Scanner.c)
-bison_target(Parser src/C_Parser.y ${CMAKE_CURRENT_BINARY_DIR}/C_Parser.c DEFINES_FILE ${CMAKE_CURRENT_SOURCE_DIR}/include/C_Parser.tab.h COMPILE_FLAGS "-d")
+flex_target(Lexer src/CmmLexer.l ${CMAKE_CURRENT_BINARY_DIR}/CmmScanner.c DEFINES_FILE ${CMAKE_CURRENT_SOURCE_DIR}/include/CmmScanner.tab.h COMPILE_FLAGS "-d")
+bison_target(Parser src/CmmParser.y ${CMAKE_CURRENT_BINARY_DIR}/CmmParser.c DEFINES_FILE ${CMAKE_CURRENT_SOURCE_DIR}/include/CmmParser.tab.h COMPILE_FLAGS "-d")
 add_flex_bison_dependency(Lexer Parser)
 
-# Add lexer and parser to the project
+# Add and Link lexer and parser
 add_library(Lexer STATIC ${FLEX_Lexer_OUTPUTS})
 add_library(Parser STATIC ${BISON_Parser_OUTPUTS})
+target_link_libraries(Lexer ${FLEX_LIBRARIES})
+target_link_libraries(Parser ${BISON_LIBRARIES})
 
 # Add Libs
 add_library(SimpleArray STATIC src/SimpleArray.c )
+add_library(ParserNodes STATIC src/ParserNodes.c src/SymbolName.c)
+set(ParserLibraries ParserNodes SimpleArray Parser Lexer)
 
 # Compile the project
-add_executable(${MainTarget} ${MainSourceFile}
-        src/SymbolName.c)
-target_link_libraries(Lexer ${FLEX_LIBRARIES})
-target_link_libraries(Parser ${BISON_LIBRARIES})
-target_link_libraries(${MainTarget} Lexer Parser SimpleArray)
+add_executable(Lab1 ${Lab1Source})
+
+# Link the project
+target_link_libraries(Lab1 ${ParserLibraries})

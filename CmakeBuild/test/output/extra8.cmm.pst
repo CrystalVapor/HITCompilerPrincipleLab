@@ -1,0 +1,15 @@
+DEBUG_PARSER_NODES:
+TYPE: int
+Specifier (1)
+ID: main
+LP
+RP
+FunDec (1)
+LC
+TYPE: float
+Specifier (3)
+ID: i
+VarDec (3)
+ASSIGNOP
+SEMI
+RC

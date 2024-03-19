@@ -1,0 +1,37 @@
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        TYPE: int
+      FunDec (1)
+        ID: main
+        LP
+        RP
+      CompSt (2)
+        LC
+        StmtList (9)
+          INT: 1
+        RC
+DEBUG_PARSER_NODES:
+TYPE: int
+Specifier (1)
+ID: main
+LP
+RP
+FunDec (1)
+LC
+STAR
+DIV
+STAR
+DIV
+TYPE: int
+ID: i
+ASSIGNOP
+INT: 1
+SEMI
+RC
+StmtList (9)
+CompSt (2)
+ExtDef (1)
+ExtDefList (1)
+Program (1)

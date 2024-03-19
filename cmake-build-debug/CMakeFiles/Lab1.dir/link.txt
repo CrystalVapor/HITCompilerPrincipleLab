@@ -1,1 +1,0 @@
-/usr/bin/cc -g CMakeFiles/Lab1.dir/main.c.o CMakeFiles/Lab1.dir/src/SymbolName.c.o -o Lab1  lib/libLexer.a lib/libParser.a lib/libSimpleArray.a /usr/lib/x86_64-linux-gnu/libfl.so 
