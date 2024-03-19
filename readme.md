@@ -1,4 +1,4 @@
-# 哈尔滨工业大学-编译原理2024-实验1
+# 哈尔滨工业大学-编译原理2024-实验
 
 ## 版权声明
 
@@ -28,7 +28,7 @@ make all
 
 ## 项目测试
 
-项目在`CmakeBuild/test`目录下内置了数个测试用例，可以通过执行`CmakeBuild`目录下的`batchTest.sh`脚本进行测试
+项目在`CmakeBuild/test`目录下内置了对于实验一的数个测试用例，可以通过执行`CmakeBuild`目录下的`Lab1BatchTest.sh`脚本进行测试
 测试结果输出至`CmakeBuild/test/output`目录下同名.pst文件中
 
 也可以单独执行./Lab1 [filename]进行测试
