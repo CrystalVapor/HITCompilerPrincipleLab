@@ -7,18 +7,19 @@
 
 ## 模块
 
-- `src/C_Parser.l` 词法分析器
-- `src/C_Parser.y` 语法分析器
+- `src/CmmLexer.l` 词法分析器
+- `src/CmmParser.y` 语法分析器
 - `src/SimpleArray.c` 用于管理树节点的简易动态数组
 - `src/SymbolName.c` 用于从符号枚举值获取符号名
-- `main.c` 主程序，以及树相关实现
+- `sec/ParserNodes.c` 语法树节点相关实现
+- `Lab1.c` 实验一主程序，包含了词法分析器和语法分析器的调用
 
 ## 项目编译
 
 从主目录下：
 
 ```bash
-cd cmake-build-debug
+cd CmakeBuild
 cmake Lab1
 make all
 ```
@@ -27,8 +28,8 @@ make all
 
 ## 项目测试
 
-项目在`cmake-build-debug/test`目录下内置了数个测试用例，可以通过执行`cmake-build-debug`目录下的`batchTest.sh`脚本进行测试
-测试结果输出至`cmake-build-debug/test/output`目录下同名.pst文件中
+项目在`CmakeBuild/test`目录下内置了数个测试用例，可以通过执行`CmakeBuild`目录下的`batchTest.sh`脚本进行测试
+测试结果输出至`CmakeBuild/test/output`目录下同名.pst文件中
 
 也可以单独执行./Lab1 [filename]进行测试
 
