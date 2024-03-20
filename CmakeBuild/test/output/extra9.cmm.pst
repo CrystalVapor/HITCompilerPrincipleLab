@@ -5,10 +5,10 @@ Program (1)
         TYPE: int
       FunDec (1)
         ID: main
-        RC
-        STRUCT
+        LP
+        RP
       CompSt (2)
-        ELSE
+        LC
         DefList (7)
           Def (7)
             Specifier (7)
@@ -21,29 +21,4 @@ Program (1)
                 Exp (7)
                   INT: 1
             SEMI
-        WHILE
-DEBUG_PARSER_NODES:
-TYPE: int
-Specifier (1)
-ID: main
-RC
-STRUCT
-FunDec (1)
-ELSE
-TYPE: int
-Specifier (7)
-ID: i
-VarDec (7)
-ASSIGNOP
-INT: 1
-Exp (7)
-SEMI
-Dec (7)
-DecList (7)
-Def (7)
-WHILE
-DefList (7)
-CompSt (2)
-ExtDef (1)
-ExtDefList (1)
-Program (1)
+        RC

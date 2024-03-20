@@ -5,7 +5,7 @@
 #ifndef LAB1_LAB1_H
 #define LAB1_LAB1_H
 #include "CmmParserTypes.h"
-#define DEBUG_PARSER_TREE
+//#define DEBUG_PARSER_TREE
 
 int main(int argc, char** argv);
 

@@ -3,6 +3,9 @@
 #include "CmmParserTypes.h"
 #include "string.h"
 #include "Structure/ParserNodes.h"
+#include "ErrorReporter.h"
+
+#define ALWAYS_TRY_PRINT_PARSER_TREE
 
 extern void yyrestart(FILE* input_file);
 
@@ -18,10 +21,28 @@ int main(int argc, char** argv){
         fprintf(stderr, "Error: Cannot open file %s\n", argv[1]);
         return 1;
     }
+
     yyset_debug(0);
     yyrestart(file);
     yyparse();
-    printParserTree_PreOrder(getParserTreeRoot(), 0);
+    int ret = hasError();
+#ifndef ALWAYS_TRY_PRINT_PARSER_TREE
+    if(!ret)
+#else
+    if(1)
+#endif
+    {
+        printParserTree_PreOrder(getParserTreeRoot(), 0);
+    }
+#ifndef ALWAYS_TRY_PRINT_PARSER_TREE
+    if(ret)
+#else
+    if(1)
+#endif
+    {
+        printError(stderr);
+        resetErrorReporter();
+    }
 
 #ifdef DEBUG_PARSER_TREE
     printf("DEBUG_PARSER_NODES:\n");
@@ -29,7 +50,7 @@ int main(int argc, char** argv){
 #endif
 
     freeParserNodes();
-    return 0;
+    return ret;
 }
 
 

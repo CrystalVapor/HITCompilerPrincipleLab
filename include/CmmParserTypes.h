@@ -39,15 +39,6 @@ typedef enum SyntaxToken_e{
     ARGS = 533
 }SyntaxToken;
 
-typedef enum Relop_e{
-    Equal = 1,
-    NotEqual = 2,
-    Less = 3,
-    Greater = 4,
-    LessEqual = 5,
-    GreaterEqual = 6
-}Relop;
-
 struct YYSTYPE_s{
     ParserNode_I nodeIndex;
 };
@@ -57,7 +48,7 @@ typedef struct YYSTYPE_s YYSTYPE;
 #include "CmmParser.tab.h"
 
 struct ParserNode_s{
-    int symbol;
+    int token;
     int lineNum;
     ParserNodeIndexContainer_t children;
     union{
@@ -70,6 +61,9 @@ struct ParserNode_s{
 #ifndef NOINCLUDE_CMM_SCANNER_TAB_H
 #include "CmmScanner.tab.h"
 #endif
+
+#define IS_SYNTAX_TOKEN(token) ((token) >= PROGRAM && (token) <= ARGS)
+#define IS_TERMINAL_TOKEN(token) ((token) >= INT && (token) <= WHILE)
 
 #include "Structure/TokenName.h"
 #include "Structure/SimpleArray.h"

@@ -50,15 +50,20 @@ target_link_libraries(Lexer ${FLEX_LIBRARIES})
 target_link_libraries(Parser ${BISON_LIBRARIES})
 
 # Add Libs
-add_library(SimpleArray STATIC src/Structure/SimpleArray.c)
-add_library(ParserNodes STATIC src/Structure/ParserNodes.c src/Structure/TokenName.c)
-set(ParserLibraries ParserNodes SimpleArray Parser Lexer)
-add_library(SemanticAnalyzer STATIC src/Structure/SymbolTable.c src/Structure/SemanticNodes.c)
+add_library(SimpleContainers STATIC src/Structure/SimpleArray.c src/Structure/SimpleHashTable.c)
+add_library(ErrorReporter STATIC src/ErrorReporter.c)
+target_link_libraries(ErrorReporter SimpleContainers)
+
+add_library(ParserAnalyzer STATIC src/Structure/ParserNodes.c src/Structure/TokenName.c)
+target_link_libraries(ParserAnalyzer Parser Lexer ErrorReporter)
+
+add_library(SemanticAnalyzer STATIC src/Structure/SymbolTable.c src/Structure/SemanticNodes.c src/SemanticAnalyzer.c)
+target_link_libraries(SemanticAnalyzer ParserAnalyzer ErrorReporter)
 
 # Compile the project
 add_executable(Lab1 ${Lab1Source})
 add_executable(Lab2 ${Lab2Source})
 
 # Link the project
-target_link_libraries(Lab1 ${ParserLibraries})
-target_link_libraries(Lab2 ${ParserLibraries} SemanticAnalyzer)
+target_link_libraries(Lab1 ParserAnalyzer)
+target_link_libraries(Lab2 SemanticAnalyzer)

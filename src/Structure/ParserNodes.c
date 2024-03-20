@@ -24,7 +24,7 @@ ParserNode_I newParserNode(int symbol, int lineNum, int childNum, ParserNode_I *
         parserNodes = SimpleArray_newArray(sizeof(ParserNode));
     }
     ParserNode node;
-    node.symbol = symbol;
+    node.token = symbol;
     node.lineNum = lineNum;
     node.children = NULL;
     switch (symbol) {
@@ -63,7 +63,7 @@ void freeParserNodeContent(ParserNode_I index) {
     {
         SimpleArray_freeSimpleArray(node->children);
     }
-    if(node->symbol == ID || node->symbol == TYPE)
+    if(node->token == ID || node->token == TYPE)
     {
         free(node->ID);
     }
@@ -213,7 +213,7 @@ void printParserNode(ParserNode_I nodeIndex, int depth) {
         return;
     }
     ParserNode_t node = getParserNode(nodeIndex);
-    if(node->symbol>=PROGRAM && node->symbol<=ARGS)
+    if(IS_SYNTAX_TOKEN(node->token))
     {
         if(node->children!=NULL)
         {
@@ -221,17 +221,17 @@ void printParserNode(ParserNode_I nodeIndex, int depth) {
             {
                 printf("  ");
             }
-            printf("%s (%d)\n", getGrammarSymbolName(node->symbol), node->lineNum);
+            printf("%s (%d)\n", getGrammarSymbolName(node->token), node->lineNum);
         }
 
     }
-    else if(node->symbol>=YYEMPTY && node->symbol<=WHILE)
+    else if(IS_TERMINAL_TOKEN(node->token))
     {
         for(int i = 0; i < depth; i++)
         {
             printf("  ");
         }
-        switch(node->symbol)
+        switch(node->token)
         {
             case ID:
                 printf("ID: %s\n", node->ID);
@@ -254,13 +254,14 @@ void printParserNode(ParserNode_I nodeIndex, int depth) {
                 printf("RELOP\n" );
                 break;
             default:
-                printf("%s\n", getTokenName(node->symbol));
+                printf("%s\n", getTokenName(node->token));
                 break;
         }
     }
 }
 
 void reportSyntaxError(int lineNum, const char *msg) {
+
     fprintf(stderr, "Error type B at Line %d: %s\n", lineNum, msg);
 }
 

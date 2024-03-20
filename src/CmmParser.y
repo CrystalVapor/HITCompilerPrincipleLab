@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include "CmmParserTypes.h"
 #include "Structure/ParserNodes.h"
+#include "ErrorReporter.h"
 #undef NOINCLUDE_CMM_SCANNER_TAB_H
 %}
 
@@ -70,7 +71,7 @@ ExtDef:
     Specifier ExtDecList SEMI       {ParserNode_I children[3] = {$1, $2, $3}; $$ = newParserNode(EXT_DEF, NO_LINE_NUMBER, 3, children, INVALID_NODE_INDEX);}
     |Specifier SEMI                 {ParserNode_I children[2] = {$1, $2}; $$ = newParserNode(EXT_DEF, NO_LINE_NUMBER, 2, children, INVALID_NODE_INDEX);}
     |Specifier FunDec CompStm       {ParserNode_I children[3] = {$1, $2, $3}; $$ = newParserNode(EXT_DEF, NO_LINE_NUMBER, 3, children, INVALID_NODE_INDEX);}
-    |error SEMI                     {reportSyntaxError(getParserNode($2)->lineNum, "Wrong external definition");}
+    |error SEMI                     {reportError(getParserNode($2)->lineNum, UnexpectedExternalDefinition, "Unexpected External Definition");}
     ;
 
 ExtDecList:
@@ -135,7 +136,7 @@ Stmt:
     |IF LP Exp RP Stmt              {ParserNode_I children[4] = {$1, $2, $3, $4}; $$ = newParserNode(STMT, NO_LINE_NUMBER, 4, children, INVALID_NODE_INDEX);}
     |IF LP Exp RP Stmt ELSE Stmt    {ParserNode_I children[6] = {$1, $2, $3, $4, $5, $6}; $$ = newParserNode(STMT, NO_LINE_NUMBER, 6, children, INVALID_NODE_INDEX);}
     |WHILE LP Exp RP Stmt           {ParserNode_I children[4] = {$1, $2, $3, $4}; $$ = newParserNode(STMT, NO_LINE_NUMBER, 4, children, INVALID_NODE_INDEX);}
-    |error SEMI                     {reportSyntaxError(getParserNode($2)->lineNum, "Wrong statement");}
+    |error SEMI                     {reportError(getParserNode($2)->lineNum, UnexpectedStatement, "Unexpected Statement");}
     ;
 
 //LOCAL DEFINITION

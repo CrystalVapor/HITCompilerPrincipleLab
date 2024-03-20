@@ -2,6 +2,7 @@
 #define NOINCLUDE_CMM_SCANNER_TAB_H
 #include "CmmParserTypes.h"
 #include "Structure/ParserNodes.h"
+#include "ErrorReporter.h"
 #undef NOINCLUDE_CMM_SCANNER_TAB_H
 %}
 
@@ -65,6 +66,7 @@ ERROR .
 {COMMENTSINGLE} { while (input() != '\n'); }
 {COMMENTMULTI} {
     int c;
+    int startLine = yylineno;
     while ((c = input()) != EOF) {
         if (c == '*') {
             if ((c = input()) == '/') {
@@ -73,6 +75,10 @@ ERROR .
             else {
                 unput(c);
             }
+        }
+        if (c == EOF) {
+            reportError(startLine, UnterminatedComment, "unterminated comment detected.");
+            break;
         }
     }
 }
@@ -117,10 +123,10 @@ ERROR .
 
 {SPACE} ;
 
-{INT_ERROR} { reportLexicalError(yylineno, "invalid integer: ", yytext);}
-{FLOAT_ERROR} { reportLexicalError(yylineno, "invalid float: ", yytext);}
-{ID_ERROR} { reportLexicalError(yylineno, "invalid identifier: ", yytext);}
+{INT_ERROR} { reportErrorFormat(yylineno, InvalidNumber,"Invalid number \"%s\" ", yytext); return YYerror;}
+{FLOAT_ERROR} { reportErrorFormat(yylineno, InvalidFloat, "Invalid float \"%s\" ", yytext); return YYerror;}
+{ID_ERROR} { reportErrorFormat(yylineno, InvalidIdentifier, "Invalid identifier \"%s\" ", yytext); return YYerror;}
 
 
-{ERROR} { reportLexicalError(yylineno, "unknown lexical token: ", yytext);}
+{ERROR} { reportErrorFormat(yylineno, UnrecognizedCharacter, "Unrecognized character \"%s\" ", yytext); return YYerror;}
 %%

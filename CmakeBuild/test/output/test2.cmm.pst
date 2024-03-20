@@ -5,10 +5,10 @@ Program (1)
         TYPE: int
       FunDec (1)
         ID: main
-        RC
-        STRUCT
+        LP
+        RP
       CompSt (2)
-        ELSE
+        LC
         DefList (3)
           Def (3)
             Specifier (3)
@@ -19,12 +19,12 @@ Program (1)
                   VarDec (3)
                     VarDec (3)
                       ID: a
-                    RETURN
+                    LB
                     INT: 10
-                    IF
-                  RETURN
+                    RB
+                  LB
                   INT: 2
-                  IF
+                  RB
             SEMI
           DefList (4)
             Def (4)
@@ -39,106 +39,23 @@ Program (1)
           FLOAT: 1.500000
           StmtList (6)
             Stmt (6)
-              
-              RC
+              IF
+              LP
               Exp (6)
                 Exp (6)
                   Exp (6)
                     Exp (6)
                       ID: a
-                    RETURN
+                    LB
                     Exp (6)
                       INT: 1
-                    IF
-                  RETURN
+                    RB
+                  LB
                   Exp (6)
                     INT: 2
-                  IF
+                  RB
                 RELOP
                 Exp (6)
                   INT: 0
-              STRUCT
-        WHILE
-DEBUG_PARSER_NODES:
-TYPE: int
-Specifier (1)
-ID: main
-RC
-STRUCT
-FunDec (1)
-ELSE
-TYPE: float
-Specifier (3)
-ID: a
-VarDec (3)
-RETURN
-INT: 10
-IF
-VarDec (3)
-RETURN
-INT: 2
-IF
-VarDec (3)
-SEMI
-Dec (3)
-DecList (3)
-Def (3)
-TYPE: int
-Specifier (4)
-ID: i
-VarDec (4)
-SEMI
-Dec (4)
-DecList (4)
-Def (4)
-ID: a
-DefList (4)
-DefList (3)
-RETURN
-Exp (5)
-INT: 5
-Exp (5)
-COMMA
-INT: 3
-IF
-ASSIGNOP
-FLOAT: 1.500000
-SEMI
-
-RC
-ID: a
-RETURN
-Exp (6)
-INT: 1
-Exp (6)
-IF
-Exp (6)
-RETURN
-INT: 2
-Exp (6)
-IF
-Exp (6)
-RELOP
-INT: 0
-Exp (6)
-STRUCT
-Exp (6)
-ID: i
-ASSIGNOP
-Exp (6)
-INT: 1
-Exp (6)
-
-Exp (6)
-ID: i
-ASSIGNOP
-INT: 0
-SEMI
-WHILE
-Stmt (6)
-StmtList (6)
-StmtList (5)
-CompSt (2)
-ExtDef (1)
-ExtDefList (1)
-Program (1)
+              RP
+        RC

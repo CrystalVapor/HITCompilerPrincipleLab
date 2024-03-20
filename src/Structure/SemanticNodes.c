@@ -17,11 +17,3 @@ int initSemanticTree(ParserNode_I parserTreeRoot) {
 
 void freeSemanticTree() {
 }
-
-void reportSemanticError(SemanticError error, int lineNum, const char** msgs)
-{
-    switch (error) {
-        default:
-            break;
-    }
-}

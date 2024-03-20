@@ -94,7 +94,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 9 "/home/crystal/compilerPriciple/Lab1/src/CmmParser.y"
+#line 10 "/home/crystal/compilerPriciple/Lab1/src/CmmParser.y"
 
     ParserNode_I nodeIndex;
 
