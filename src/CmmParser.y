@@ -2,7 +2,7 @@
 #define NOINCLUDE_CMM_SCANNER_TAB_H
 #include <stddef.h>
 #include "CmmParserTypes.h"
-#include "ParserNodes.h"
+#include "Structure/ParserNodes.h"
 #undef NOINCLUDE_CMM_SCANNER_TAB_H
 %}
 

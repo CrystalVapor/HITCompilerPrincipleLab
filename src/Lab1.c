@@ -2,7 +2,7 @@
 #include "Lab1.h"
 #include "CmmParserTypes.h"
 #include "string.h"
-#include "ParserNodes.h"
+#include "Structure/ParserNodes.h"
 
 extern void yyrestart(FILE* input_file);
 

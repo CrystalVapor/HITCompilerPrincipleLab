@@ -8,6 +8,7 @@ set(CMAKE_C_STANDARD 11)
 set(RequiredMinimumVersion_Flex 2.5.35)
 set(RequiredMinimumVersion_Bison 2.5.0)
 set(Lab1Source src/Lab1.c)
+set(Lab2Source src/Lab2.c)
 # ~~~~~~End of Variables~~~~~~
 
 # Find Flex and Bison
@@ -49,12 +50,15 @@ target_link_libraries(Lexer ${FLEX_LIBRARIES})
 target_link_libraries(Parser ${BISON_LIBRARIES})
 
 # Add Libs
-add_library(SimpleArray STATIC src/SimpleArray.c )
-add_library(ParserNodes STATIC src/ParserNodes.c src/SymbolName.c)
+add_library(SimpleArray STATIC src/Structure/SimpleArray.c)
+add_library(ParserNodes STATIC src/Structure/ParserNodes.c src/Structure/TokenName.c)
 set(ParserLibraries ParserNodes SimpleArray Parser Lexer)
+add_library(SemanticAnalyzer STATIC src/Structure/SymbolTable.c src/Structure/SemanticNodes.c)
 
 # Compile the project
 add_executable(Lab1 ${Lab1Source})
+add_executable(Lab2 ${Lab2Source})
 
 # Link the project
 target_link_libraries(Lab1 ${ParserLibraries})
+target_link_libraries(Lab2 ${ParserLibraries} SemanticAnalyzer)

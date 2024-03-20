@@ -15,7 +15,7 @@ typedef struct ParserNode_s ParserNode;
 typedef SimpleArray_t ParserNodeIndexContainer_t;
 typedef int ParserNode_I;
 
-typedef enum GrammarSymbolType_e{
+typedef enum SyntaxToken_e{
     PROGRAM = 513,
     EXT_DEF_LIST = 514,
     EXT_DEF = 515,
@@ -37,7 +37,16 @@ typedef enum GrammarSymbolType_e{
     DEC = 531,
     EXP = 532,
     ARGS = 533
-}GrammarSymbol;
+}SyntaxToken;
+
+typedef enum Relop_e{
+    Equal = 1,
+    NotEqual = 2,
+    Less = 3,
+    Greater = 4,
+    LessEqual = 5,
+    GreaterEqual = 6
+}Relop;
 
 struct YYSTYPE_s{
     ParserNode_I nodeIndex;
@@ -62,8 +71,8 @@ struct ParserNode_s{
 #include "CmmScanner.tab.h"
 #endif
 
-#include "SymbolName.h"
-#include "SimpleArray.h"
+#include "Structure/TokenName.h"
+#include "Structure/SimpleArray.h"
 
 #define NO_LINE_NUMBER (0)
 #endif //LAB1_CMMPARSERTYPES_H
