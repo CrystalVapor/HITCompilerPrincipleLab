@@ -5,31 +5,31 @@ Program (1)
         TYPE: int
       FunDec (1)
         ID: main
-        LP
-        RP
+        RC
+        STRUCT
       CompSt (2)
-        LC
+        ELSE
         StmtList (9)
           INT: 1
-        RC
+        WHILE
 DEBUG_PARSER_NODES:
 TYPE: int
 Specifier (1)
 ID: main
-LP
-RP
+RC
+STRUCT
 FunDec (1)
-LC
-STAR
-DIV
-STAR
-DIV
+ELSE
+NOT
+TYPE
+NOT
+TYPE
 TYPE: int
 ID: i
 ASSIGNOP
 INT: 1
 SEMI
-RC
+WHILE
 StmtList (9)
 CompSt (2)
 ExtDef (1)

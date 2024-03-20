@@ -60,27 +60,32 @@ extern int yydebug;
     SEMI = 261,                    /* SEMI  */
     COMMA = 262,                   /* COMMA  */
     ASSIGNOP = 263,                /* ASSIGNOP  */
-    RELOP = 264,                   /* RELOP  */
-    PLUS = 265,                    /* PLUS  */
-    MINUS = 266,                   /* MINUS  */
-    STAR = 267,                    /* STAR  */
-    DIV = 268,                     /* DIV  */
-    AND = 269,                     /* AND  */
-    OR = 270,                      /* OR  */
-    DOT = 271,                     /* DOT  */
-    NOT = 272,                     /* NOT  */
-    TYPE = 273,                    /* TYPE  */
-    LP = 274,                      /* LP  */
-    RP = 275,                      /* RP  */
-    LB = 276,                      /* LB  */
-    RB = 277,                      /* RB  */
-    LC = 278,                      /* LC  */
-    RC = 279,                      /* RC  */
-    STRUCT = 280,                  /* STRUCT  */
-    RETURN = 281,                  /* RETURN  */
-    IF = 282,                      /* IF  */
-    ELSE = 283,                    /* ELSE  */
-    WHILE = 284                    /* WHILE  */
+    EQ = 264,                      /* EQ  */
+    NEQ = 265,                     /* NEQ  */
+    LE = 266,                      /* LE  */
+    LT = 267,                      /* LT  */
+    GE = 268,                      /* GE  */
+    GT = 269,                      /* GT  */
+    PLUS = 270,                    /* PLUS  */
+    MINUS = 271,                   /* MINUS  */
+    STAR = 272,                    /* STAR  */
+    DIV = 273,                     /* DIV  */
+    AND = 274,                     /* AND  */
+    OR = 275,                      /* OR  */
+    DOT = 276,                     /* DOT  */
+    NOT = 277,                     /* NOT  */
+    TYPE = 278,                    /* TYPE  */
+    LP = 279,                      /* LP  */
+    RP = 280,                      /* RP  */
+    LB = 281,                      /* LB  */
+    RB = 282,                      /* RB  */
+    LC = 283,                      /* LC  */
+    RC = 284,                      /* RC  */
+    STRUCT = 285,                  /* STRUCT  */
+    RETURN = 286,                  /* RETURN  */
+    IF = 287,                      /* IF  */
+    ELSE = 288,                    /* ELSE  */
+    WHILE = 289                    /* WHILE  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -93,7 +98,7 @@ union YYSTYPE
 
     ParserNode_I nodeIndex;
 
-#line 97 "/home/crystal/compilerPriciple/Lab1/include/CmmParser.tab.h"
+#line 102 "/home/crystal/compilerPriciple/Lab1/include/CmmParser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

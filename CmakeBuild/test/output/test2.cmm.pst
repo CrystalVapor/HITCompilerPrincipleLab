@@ -5,10 +5,10 @@ Program (1)
         TYPE: int
       FunDec (1)
         ID: main
-        LP
-        RP
+        RC
+        STRUCT
       CompSt (2)
-        LC
+        ELSE
         DefList (3)
           Def (3)
             Specifier (3)
@@ -19,12 +19,12 @@ Program (1)
                   VarDec (3)
                     VarDec (3)
                       ID: a
-                    LB
+                    RETURN
                     INT: 10
-                    RB
-                  LB
+                    IF
+                  RETURN
                   INT: 2
-                  RB
+                  IF
             SEMI
           DefList (4)
             Def (4)
@@ -39,45 +39,45 @@ Program (1)
           FLOAT: 1.500000
           StmtList (6)
             Stmt (6)
-              IF
-              LP
+              
+              RC
               Exp (6)
                 Exp (6)
                   Exp (6)
                     Exp (6)
                       ID: a
-                    LB
+                    RETURN
                     Exp (6)
                       INT: 1
-                    RB
-                  LB
+                    IF
+                  RETURN
                   Exp (6)
                     INT: 2
-                  RB
+                  IF
                 RELOP
                 Exp (6)
                   INT: 0
-              RP
-        RC
+              STRUCT
+        WHILE
 DEBUG_PARSER_NODES:
 TYPE: int
 Specifier (1)
 ID: main
-LP
-RP
+RC
+STRUCT
 FunDec (1)
-LC
+ELSE
 TYPE: float
 Specifier (3)
 ID: a
 VarDec (3)
-LB
+RETURN
 INT: 10
-RB
+IF
 VarDec (3)
-LB
+RETURN
 INT: 2
-RB
+IF
 VarDec (3)
 SEMI
 Dec (3)
@@ -94,47 +94,47 @@ Def (4)
 ID: a
 DefList (4)
 DefList (3)
-LB
+RETURN
 Exp (5)
 INT: 5
 Exp (5)
 COMMA
 INT: 3
-RB
+IF
 ASSIGNOP
 FLOAT: 1.500000
 SEMI
-IF
-LP
+
+RC
 ID: a
-LB
+RETURN
 Exp (6)
 INT: 1
 Exp (6)
-RB
+IF
 Exp (6)
-LB
+RETURN
 INT: 2
 Exp (6)
-RB
+IF
 Exp (6)
 RELOP
 INT: 0
 Exp (6)
-RP
+STRUCT
 Exp (6)
 ID: i
 ASSIGNOP
 Exp (6)
 INT: 1
 Exp (6)
-ELSE
+
 Exp (6)
 ID: i
 ASSIGNOP
 INT: 0
 SEMI
-RC
+WHILE
 Stmt (6)
 StmtList (6)
 StmtList (5)

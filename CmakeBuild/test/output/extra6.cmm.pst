@@ -2,10 +2,10 @@ DEBUG_PARSER_NODES:
 TYPE: int
 Specifier (1)
 ID: main
-LP
-RP
+RC
+STRUCT
 FunDec (1)
-LC
+ELSE
 TYPE: int
 Specifier (3)
 ID: i
@@ -19,4 +19,4 @@ ASSIGNOP
 VarDec (4)
 ExtDecList (4)
 SEMI
-RC
+WHILE

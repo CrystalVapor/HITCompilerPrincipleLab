@@ -5,10 +5,10 @@ Program (1)
         TYPE: int
       FunDec (1)
         ID: main
-        LP
-        RP
+        RC
+        STRUCT
       CompSt (2)
-        LC
+        ELSE
         DefList (3)
           Def (3)
             Specifier (3)
@@ -33,15 +33,15 @@ Program (1)
                   Exp (4)
                     INT: 63
               SEMI
-        RC
+        WHILE
 DEBUG_PARSER_NODES:
 TYPE: int
 Specifier (1)
 ID: main
-LP
-RP
+RC
+STRUCT
 FunDec (1)
-LC
+ELSE
 TYPE: int
 Specifier (3)
 ID: i
@@ -64,7 +64,7 @@ SEMI
 Dec (4)
 DecList (4)
 Def (4)
-RC
+WHILE
 DefList (4)
 DefList (3)
 CompSt (2)

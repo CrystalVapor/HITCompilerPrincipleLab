@@ -2,14 +2,14 @@ DEBUG_PARSER_NODES:
 TYPE: int
 Specifier (1)
 ID: main
-LP
-RP
+RC
+STRUCT
 FunDec (1)
-LC
+ELSE
 TYPE: float
 Specifier (3)
 ID: i
 VarDec (3)
 ASSIGNOP
 SEMI
-RC
+WHILE

@@ -245,6 +245,14 @@ void printParserNode(ParserNode_I nodeIndex, int depth) {
             case FLOAT:
                 printf("FLOAT: %f\n", node->floatVal);
                 break;
+            case EQ:
+            case NEQ:
+            case LT:
+            case GT:
+            case LE:
+            case GE:
+                printf("RELOP\n" );
+                break;
             default:
                 printf("%s\n", getTokenName(node->symbol));
                 break;

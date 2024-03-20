@@ -5,10 +5,10 @@ Program (1)
         TYPE: int
       FunDec (1)
         ID: main
-        LP
-        RP
+        RC
+        STRUCT
       CompSt (2)
-        LC
+        ELSE
         DefList (3)
           Def (3)
             Specifier (3)
@@ -21,15 +21,15 @@ Program (1)
                 Exp (3)
                   FLOAT: 0.000105
             SEMI
-        RC
+        WHILE
 DEBUG_PARSER_NODES:
 TYPE: int
 Specifier (1)
 ID: main
-LP
-RP
+RC
+STRUCT
 FunDec (1)
-LC
+ELSE
 TYPE: float
 Specifier (3)
 ID: i
@@ -41,7 +41,7 @@ SEMI
 Dec (3)
 DecList (3)
 Def (3)
-RC
+WHILE
 DefList (3)
 CompSt (2)
 ExtDef (1)

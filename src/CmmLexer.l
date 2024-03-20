@@ -19,7 +19,6 @@ ID [a-zA-Z_][a-zA-Z0-9_]*
 SEMI ;
 COMMA ,
 ASSIGNOP =
-RELOP ==|!=|<=|<|>=|>
 PLUS \+
 MINUS \-
 STAR \*
@@ -29,7 +28,7 @@ OR \|\|
 DOT \.
 NOT !
 
-EQUAL ==
+EQ ==
 NEQ !=
 LE <=
 LT <
@@ -84,7 +83,6 @@ ERROR .
 {SEMI} { yylval.nodeIndex = newParserNode(SEMI, yylineno, 0, NULL, INVALID_NODE_INDEX); return SEMI; }
 {COMMA} { yylval.nodeIndex = newParserNode(COMMA, yylineno, 0, NULL, INVALID_NODE_INDEX); return COMMA; }
 {ASSIGNOP} { yylval.nodeIndex = newParserNode(ASSIGNOP, yylineno, 0, NULL, INVALID_NODE_INDEX); return ASSIGNOP; }
-{RELOP} { yylval.nodeIndex = newParserNode(RELOP, yylineno, 0, NULL, INVALID_NODE_INDEX); return RELOP; }
 {PLUS} { yylval.nodeIndex = newParserNode(PLUS, yylineno, 0, NULL, INVALID_NODE_INDEX); return PLUS; }
 {MINUS} { yylval.nodeIndex = newParserNode(MINUS, yylineno, 0, NULL, INVALID_NODE_INDEX); return MINUS; }
 {STAR} { yylval.nodeIndex = newParserNode(STAR, yylineno, 0, NULL, INVALID_NODE_INDEX); return STAR; }
@@ -94,6 +92,14 @@ ERROR .
 {DOT} { yylval.nodeIndex = newParserNode(DOT, yylineno, 0, NULL, INVALID_NODE_INDEX); return DOT; }
 {NOT} { yylval.nodeIndex = newParserNode(NOT, yylineno, 0, NULL, INVALID_NODE_INDEX); return NOT; }
 {TYPE} { yylval.nodeIndex = newParserNode(TYPE, yylineno, 0, NULL, INVALID_NODE_INDEX); return TYPE; }
+
+{EQ} { yylval.nodeIndex = newParserNode(EQ, yylineno, 0, NULL, INVALID_NODE_INDEX); return EQ; }
+{NEQ} { yylval.nodeIndex = newParserNode(NEQ, yylineno, 0, NULL, INVALID_NODE_INDEX); return NEQ; }
+{LE} { yylval.nodeIndex = newParserNode(LE, yylineno, 0, NULL, INVALID_NODE_INDEX); return LE; }
+{LT} { yylval.nodeIndex = newParserNode(LT, yylineno, 0, NULL, INVALID_NODE_INDEX); return LT; }
+{GE} { yylval.nodeIndex = newParserNode(GE, yylineno, 0, NULL, INVALID_NODE_INDEX); return GE; }
+{GT} { yylval.nodeIndex = newParserNode(GT, yylineno, 0, NULL, INVALID_NODE_INDEX); return GT; }
+
 {LP} { yylval.nodeIndex = newParserNode(LP, yylineno, 0, NULL, INVALID_NODE_INDEX); return LP; }
 {RP} { yylval.nodeIndex = newParserNode(RP, yylineno, 0, NULL, INVALID_NODE_INDEX); return RP; }
 {LB} { yylval.nodeIndex = newParserNode(LB, yylineno, 0, NULL, INVALID_NODE_INDEX); return LB; }

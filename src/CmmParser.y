@@ -16,7 +16,7 @@
 %token <nodeIndex> SEMI // ;
 %token <nodeIndex> COMMA // ,
 %token <nodeIndex> ASSIGNOP // =
-%token <nodeIndex> RELOP // <, <=, >, >=, ==, !=
+%token <nodeIndex> EQ NEQ LE LT GE GT // ==, !=, <=, <, >=, >
 %token <nodeIndex> PLUS // +
 %token <nodeIndex> MINUS // -
 %token <nodeIndex> STAR // *
@@ -49,7 +49,7 @@
 %right ASSIGNOP
 %left OR
 %left AND
-%left RELOP
+%left EQ NEQ LE LT GE GT
 %left PLUS MINUS
 %left STAR DIV
 %right NOT
@@ -164,7 +164,12 @@ Exp:
     Exp ASSIGNOP Exp                {ParserNode_I children[3] = {$1, $2, $3}; $$ = newParserNode(EXP, NO_LINE_NUMBER, 3, children, INVALID_NODE_INDEX);}
     |Exp AND Exp                    {ParserNode_I children[3] = {$1, $2, $3}; $$ = newParserNode(EXP, NO_LINE_NUMBER, 3, children, INVALID_NODE_INDEX);}
     |Exp OR Exp                     {ParserNode_I children[3] = {$1, $2, $3}; $$ = newParserNode(EXP, NO_LINE_NUMBER, 3, children, INVALID_NODE_INDEX);}
-    |Exp RELOP Exp                  {ParserNode_I children[3] = {$1, $2, $3}; $$ = newParserNode(EXP, NO_LINE_NUMBER, 3, children, INVALID_NODE_INDEX);}
+    |Exp EQ Exp                     {ParserNode_I children[3] = {$1, $2, $3}; $$ = newParserNode(EXP, NO_LINE_NUMBER, 3, children, INVALID_NODE_INDEX);}
+    |Exp NEQ Exp                    {ParserNode_I children[3] = {$1, $2, $3}; $$ = newParserNode(EXP, NO_LINE_NUMBER, 3, children, INVALID_NODE_INDEX);}
+    |Exp LT Exp                     {ParserNode_I children[3] = {$1, $2, $3}; $$ = newParserNode(EXP, NO_LINE_NUMBER, 3, children, INVALID_NODE_INDEX);}
+    |Exp LE Exp                     {ParserNode_I children[3] = {$1, $2, $3}; $$ = newParserNode(EXP, NO_LINE_NUMBER, 3, children, INVALID_NODE_INDEX);}
+    |Exp GT Exp                     {ParserNode_I children[3] = {$1, $2, $3}; $$ = newParserNode(EXP, NO_LINE_NUMBER, 3, children, INVALID_NODE_INDEX);}
+    |Exp GE Exp                     {ParserNode_I children[3] = {$1, $2, $3}; $$ = newParserNode(EXP, NO_LINE_NUMBER, 3, children, INVALID_NODE_INDEX);}
     |Exp PLUS Exp                   {ParserNode_I children[3] = {$1, $2, $3}; $$ = newParserNode(EXP, NO_LINE_NUMBER, 3, children, INVALID_NODE_INDEX);}
     |Exp MINUS Exp                  {ParserNode_I children[3] = {$1, $2, $3}; $$ = newParserNode(EXP, NO_LINE_NUMBER, 3, children, INVALID_NODE_INDEX);}
     |Exp STAR Exp                   {ParserNode_I children[3] = {$1, $2, $3}; $$ = newParserNode(EXP, NO_LINE_NUMBER, 3, children, INVALID_NODE_INDEX);}
