@@ -12,10 +12,10 @@
 - `src/ErrorReporter.c` 错误报告器，使用散列表实现
 - `src/Structure/SimpleArray.c` 用于管理树节点，以及为高级数据结构提供基础的的简易动态数组
 - `src/Structure/SimpleHashTable.c` 用于管理符号表和错误报告的简易哈希表
-- `src/TokenName.c` 用于从符号枚举值获取符号名
-- `src/SymbolTable.c` 符号表相关实现 (WIP)
-- `src/ParserNodes.c` 语法树节点，使用动态数组实现
-- `src/SemanticNodes.c` 语义树节点相关实现 (WIP)
+- `src/Structure/TokenName.c` 用于从符号枚举值获取符号名
+- `src/Structure/SymbolTable.c` 符号表相关实现 (WIP)
+- `src/Structure/ParserNodes.c` 语法树节点，使用动态数组实现
+- `src/Structure/SemanticNodes.c` 语义树节点相关实现 (WIP)
 - `Lab1.c` 实验一主程序，包含了词法分析器和语法分析器的调用
 - `Lab2.c` 实验二主程序，包含了语义分析器的调用 (WIP)
 
