@@ -1,5 +1,5 @@
 //
-// Created by m1504 on 2024/3/20.
+// Created by Crystal on 2024/3/20.
 //
 
 #ifndef LAB1_ERRORREPORTER_H
@@ -9,35 +9,50 @@
 
 typedef enum ErrorType_e{
     LEXICAL_ERROR_BASE = 0,
-    UnrecognizedCharacter = 1,
-    InvalidIdentifier = 2,
-    InvalidNumber = 3,
-    InvalidFloat = 4,
 
-    SYNTAX_ERROR_BASE = 10,
-    UnexpectedStatement = 11,
-    UnexpectedExternalDefinition = 12,
-    UnterminatedComment = 13,
+    UnrecognizedCharacter,
+    InvalidIdentifier,
+    InvalidNumber,
+    InvalidFloat,
+
+    UNDEF_LEXICAL_ERROR = 49,
+
+    SYNTAX_ERROR_BASE = 50,
+
+    UnexpectedStatement,
+    UnexpectedDeclaration,
+    MissingSemicolon,
+    MissingRightBracket,
+    MissingRightParenthesis,
+    MissingComma,
+    MissingSpecifier,
+    UnterminatedComment,
+    UnexpectedExpression,
+
+    UNDEF_SYNTAX_ERROR = 99,
 
     SEMANTIC_ERROR_BASE = 100,
-    UndefinedVariable = 101,
-    UndefinedFunctionCalled = 102,
-    VariableRedefinition = 103,
-    FunctionRedefinition = 104,
-    TypeMismatch_Assignment = 105,
-    RvalueAssignment = 106,
-    TypeMismatch_Operator = 107,
-    TypeMismatch_Return = 108,
-    ArgListMismatch = 109,
-    ArrayAccessOnNonArray = 110,
-    FunctionCalledOnNonFunction = 111,
-    NonIntegerIndex = 112,
-    StructMemberAccessOnNonStruct = 113,
-    UndefinedStructMember = 114,
-    StructMemberRedefinition = 115,
-    StructRedefinition = 116,
-    UndefinedExternalFunction = 117,
-    ImplicitFunctionDeclaration = 118,
+
+    UndefinedVariable,
+    UndefinedFunctionCalled,
+    VariableRedefinition,
+    FunctionRedefinition,
+    TypeMismatch_Assignment,
+    RvalueAssignment,
+    TypeMismatch_Operator,
+    TypeMismatch_Return,
+    ArgListMismatch,
+    ArrayAccessOnNonArra,
+    FunctionCalledOnNonFunction,
+    NonIntegerIndex,
+    StructMemberAccessOnNonStruct,
+    UndefinedStructMember,
+    StructMemberRedefinition,
+    StructRedefinition,
+    UndefinedExternalFunction,
+    ImplicitFunctionDeclaration,
+
+    UNDEF_SEMANTIC_ERROR = 149,
 }ErrorType;
 
 // register an error to reporter, content of externalMessage will be malloc copied

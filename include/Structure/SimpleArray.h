@@ -18,8 +18,6 @@ struct SimpleArray_s{
 typedef struct SimpleArray_s* SimpleArray_t;
 typedef struct SimpleArray_s SimpleArray;
 
-
-
 // Create a new simple array, the typeSize is the size of the type of the element
 SimpleArray_t SimpleArray_newArray(int typeSize);
 

@@ -9,9 +9,9 @@
 
 #include "ErrorReporter.h"
 
-#define IS_LEXICAL_ERROR(errorType) (errorType >= LEXICAL_ERROR_BASE && errorType <= InvalidFloat)
-#define IS_SYNTAX_ERROR(errorType) (errorType >= SYNTAX_ERROR_BASE && errorType <= UnterminatedComment)
-#define IS_SEMANTIC_ERROR(errorType) (errorType >= SEMANTIC_ERROR_BASE && errorType <= ImplicitFunctionDeclaration)
+#define IS_LEXICAL_ERROR(errorType) (errorType >= LEXICAL_ERROR_BASE && errorType <= UNDEF_LEXICAL_ERROR)
+#define IS_SYNTAX_ERROR(errorType) (errorType >= SYNTAX_ERROR_BASE && errorType <= UNDEF_SYNTAX_ERROR)
+#define IS_SEMANTIC_ERROR(errorType) (errorType >= SEMANTIC_ERROR_BASE && errorType <= UNDEF_SEMANTIC_ERROR)
 
 //#define ERROR_REPORTER_DEBUG
 
@@ -88,7 +88,7 @@ void printErrorInfo(const void* inErrorInfo) {
 
 void reportError(int line, int errorType, char* externalMessage) {
     if (errorTable == NULL) {
-        errorTable = SimpleHashTable_createHashTableWithSize(sizeof(ErrorInfo), NULL, NULL, THOUSAND_HASH_TABLE_SIZE);
+        errorTable = SimpleHashTable_createHashTable(sizeof(ErrorInfo), NULL, NULL);
     }
 
 #ifdef ERROR_REPORTER_DEBUG
@@ -98,10 +98,11 @@ printf("DEBUG: Error type %s at line %d: %s\n\n"
             , externalMessage);
 #endif
 
-    if(SimpleHashTable_find(errorTable, &line, sizeof(int)) != NULL)
+    ErrorInfo_t existedErrorInfo = (ErrorInfo_t)SimpleHashTable_find(errorTable, &line, sizeof(int));
+    if(existedErrorInfo != NULL && existedErrorInfo->errorType <= errorType)
     {
 #ifdef ERROR_REPORTER_DEBUG
-        printf("DEBUG: Error already exists at line %d, ignore new error\n\n", line);
+        printf("DEBUG: Higher Priority Error already exists at line %d, ignore new error\n\n", line);
 #endif
         return;
     }
@@ -114,7 +115,7 @@ printf("DEBUG: Error type %s at line %d: %s\n\n"
             , errorInfo.externalMessage);
 #endif
 
-    SimpleHashTable_insert(errorTable, (char*)&line, sizeof(int), &errorInfo);
+    SimpleHashTable_forceInsert(errorTable, (char*)&line, sizeof(int), &errorInfo, NULL, freeErrorInfo);
 
 #ifdef ERROR_REPORTER_DEBUG
     printf("DEBUG: Error type %s in *ErrorTable* at line %d: %s\n\n"

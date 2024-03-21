@@ -3,7 +3,7 @@ int main()
     /*
     comment
     /*
-    nested comment */
+    nested comment
     */
     */
     int i = 1;

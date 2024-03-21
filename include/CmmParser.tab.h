@@ -85,7 +85,12 @@ extern int yydebug;
     RETURN = 286,                  /* RETURN  */
     IF = 287,                      /* IF  */
     ELSE = 288,                    /* ELSE  */
-    WHILE = 289                    /* WHILE  */
+    WHILE = 289,                   /* WHILE  */
+    LELSE = 290,                   /* LELSE  */
+    pri3 = 291,                    /* pri3  */
+    pri2 = 292,                    /* pri2  */
+    pri1 = 293,                    /* pri1  */
+    pri0 = 294                     /* pri0  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -94,11 +99,11 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 10 "/home/crystal/compilerPriciple/Lab1/src/CmmParser.y"
+#line 13 "/home/crystal/compilerPriciple/Lab1/src/CmmParser.y"
 
     ParserNode_I nodeIndex;
 
-#line 102 "/home/crystal/compilerPriciple/Lab1/include/CmmParser.tab.h"
+#line 107 "/home/crystal/compilerPriciple/Lab1/include/CmmParser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

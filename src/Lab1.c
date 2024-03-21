@@ -1,11 +1,10 @@
 #include <stdio.h>
 #include "Lab1.h"
 #include "CmmParserTypes.h"
-#include "string.h"
 #include "Structure/ParserNodes.h"
 #include "ErrorReporter.h"
 
-#define ALWAYS_TRY_PRINT_PARSER_TREE
+//#define ALWAYS_TRY_PRINT_PARSER_TREE
 
 extern void yyrestart(FILE* input_file);
 

@@ -57,6 +57,10 @@ int defaultHash(const void* key, int keySize, int tableSize) {
     return pjwHash((const char*)key, keySize, tableSize);
 }
 
+SimpleHashTable_t SimpleHashTable_createHashTable(int elementSize, HashFunc hashFunc, CompareFunc compareFunc) {
+    return SimpleHashTable_createHashTableWithSize(elementSize, hashFunc, compareFunc, THOUSAND_HASH_TABLE_SIZE);
+}
+
 SimpleHashTable_t SimpleHashTable_createHashTableWithSize(int elementSize, HashFunc hashFunc, CompareFunc compareFunc, int tableSize) {
     SimpleHashTable_t hashTable = (SimpleHashTable_t)malloc(sizeof(SimpleHashTable));
     hashTable->hashFunc = hashFunc == NULL ? defaultHash : hashFunc;

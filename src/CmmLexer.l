@@ -4,6 +4,7 @@
 #include "Structure/ParserNodes.h"
 #include "ErrorReporter.h"
 #undef NOINCLUDE_CMM_SCANNER_TAB_H
+
 %}
 
 %option yylineno
