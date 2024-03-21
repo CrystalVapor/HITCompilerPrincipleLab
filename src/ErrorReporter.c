@@ -13,7 +13,7 @@
 #define IS_SYNTAX_ERROR(errorType) (errorType >= SYNTAX_ERROR_BASE && errorType <= UNDEF_SYNTAX_ERROR)
 #define IS_SEMANTIC_ERROR(errorType) (errorType >= SEMANTIC_ERROR_BASE && errorType <= UNDEF_SEMANTIC_ERROR)
 
-//#define ERROR_REPORTER_DEBUG
+#define ERROR_REPORTER_DEBUG
 
 typedef struct ErrorInfo_s {
     int errorType;

@@ -1,0 +1,6 @@
+DEBUG: Error type A at line 3: Invalid float "1.05e" 
+
+DEBUG: Error type A in *ErrorInfo* at line 3: Invalid float "1.05e" 
+
+DEBUG: Error type A in *ErrorTable* at line 3: Invalid float "1.05e" 
+

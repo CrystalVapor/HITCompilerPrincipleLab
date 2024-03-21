@@ -14,7 +14,6 @@ extern int yylex();
     ParserNode_I nodeIndex;
 }
 
-%expect 1
 
 %token <nodeIndex> INT // A sequence of digits without spaces
 %token <nodeIndex> FLOAT // A real number consisting of digits and a decimal point, point must be surrounded by digits
@@ -89,7 +88,7 @@ ExtDef:
     |Specifier ExtDecList     %prec pri1    {reportError(getParserNode($1)->lineNum, MissingSemicolon, "Missing \";\"");}
     |Specifier                %prec pri1    {reportError(getParserNode($1)->lineNum, MissingSemicolon, "Missing \";\"");}
     |Specifier FunDec         %prec pri1    {reportError(getParserNode($2)->lineNum, MissingSemicolon, "Missing \";\"");}
-    |error SEMI               %prec pri2    {reportError(yylineno, UnexpectedDeclaration, "Unexpected Declaration");}
+    |error SEMI               %prec pri2    {yyerrok; reportError(yylineno, UnexpectedDeclaration, "Unexpected Declaration");}
     ;
 
 ExtDecList:
@@ -155,15 +154,16 @@ StmtList:
     ;
 
 Stmt:
-    Exp SEMI                                {ParserNode_I children[2] = {$1, $2}; $$ = newParserNode(STMT, NO_LINE_NUMBER, 2, children, INVALID_NODE_INDEX);}
+    Exp SEMI                    %prec pri2  {ParserNode_I children[2] = {$1, $2}; $$ = newParserNode(STMT, NO_LINE_NUMBER, 2, children, INVALID_NODE_INDEX);}
     |CompStm                                {ParserNode_I children[1] = {$1}; $$ = newParserNode(STMT, NO_LINE_NUMBER, 1, children, INVALID_NODE_INDEX);}
-    |RETURN Exp SEMI                        {ParserNode_I children[3] = {$1, $2, $3}; $$ = newParserNode(STMT, NO_LINE_NUMBER, 3, children, INVALID_NODE_INDEX);}
+    |RETURN Exp SEMI            %prec pri2  {ParserNode_I children[3] = {$1, $2, $3}; $$ = newParserNode(STMT, NO_LINE_NUMBER, 3, children, INVALID_NODE_INDEX);}
     |IF LP Exp RP Stmt         %prec LELSE  {ParserNode_I children[4] = {$1, $2, $3, $4}; $$ = newParserNode(STMT, NO_LINE_NUMBER, 4, children, INVALID_NODE_INDEX);}
     |IF LP Exp RP Stmt ELSE Stmt            {ParserNode_I children[6] = {$1, $2, $3, $4, $5, $6}; $$ = newParserNode(STMT, NO_LINE_NUMBER, 6, children, INVALID_NODE_INDEX);}
     |WHILE LP Exp RP Stmt                   {ParserNode_I children[4] = {$1, $2, $3, $4}; $$ = newParserNode(STMT, NO_LINE_NUMBER, 4, children, INVALID_NODE_INDEX);}
 
-    |error SEMI                 %prec pri2  {reportError(yylineno, UnexpectedStatement, "Unexpected Statement");}
+    |error SEMI                 %prec pri3  {yyerrok; reportError(yylineno, UnexpectedStatement, "Unexpected Statement");}
     ;
+
 
 //LOCAL DEFINITION
 DefList:
@@ -212,7 +212,8 @@ Exp:
     |INT                        %prec pri0  {ParserNode_I children[1] = {$1}; $$ = newParserNode(EXP, NO_LINE_NUMBER, 1, children, INVALID_NODE_INDEX);}
     |FLOAT                      %prec pri0  {ParserNode_I children[1] = {$1}; $$ = newParserNode(EXP, NO_LINE_NUMBER, 1, children, INVALID_NODE_INDEX);}
 
-    |error                      %prec pri1  {reportError(yylineno, UnexpectedExpression, "Unexpected Expression");}
+    |error '\n'                 %prec pri1  {yyerrok; reportError(yylineno, UnexpectedExpression, "Unexpected Expression");}
+    |error Exp                  %prec pri1  {yyerrok; reportError(yylineno, UnexpectedExpression, "Unexpected Expression");}
     ;
 
 Args:

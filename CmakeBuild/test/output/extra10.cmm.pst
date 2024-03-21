@@ -1,0 +1,18 @@
+DEBUG: Error type B at line 9: Unexpected Expression
+
+DEBUG: Error type B in *ErrorInfo* at line 9: Unexpected Expression
+
+DEBUG: Error type B in *ErrorTable* at line 9: Unexpected Expression
+
+DEBUG: Error type B at line 9: Unexpected Expression
+
+DEBUG: Higher Priority Error already exists at line 9, ignore new error
+
+DEBUG: Error type B at line 9: Unexpected Expression
+
+DEBUG: Higher Priority Error already exists at line 9, ignore new error
+
+DEBUG: Error type B at line 9: Unexpected Expression
+
+DEBUG: Higher Priority Error already exists at line 9, ignore new error
+

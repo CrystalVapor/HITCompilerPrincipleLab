@@ -73,4 +73,6 @@ void resetErrorReporter();
 // just check if reportError is called, do not check the content of the error
 int hasError();
 
+void yyerror(const char* msg);
+
 #endif //LAB1_ERRORREPORTER_H

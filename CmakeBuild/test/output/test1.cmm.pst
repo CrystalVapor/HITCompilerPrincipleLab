@@ -1,0 +1,14 @@
+DEBUG: Error type A at line 4: Unrecognized character "~" 
+
+DEBUG: Error type A in *ErrorInfo* at line 4: Unrecognized character "~" 
+
+DEBUG: Error type A in *ErrorTable* at line 4: Unrecognized character "~" 
+
+DEBUG: Error type B at line 4: Unexpected Expression
+
+DEBUG: Higher Priority Error already exists at line 4, ignore new error
+
+DEBUG: Error type B at line 4: Unexpected Expression
+
+DEBUG: Higher Priority Error already exists at line 4, ignore new error
+
