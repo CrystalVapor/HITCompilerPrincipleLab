@@ -49,10 +49,10 @@ SimpleHashTable_t SimpleHashTable_createHashTable(int elementSize, HashFunc hash
 // create a hash table with the given element size, hash function, compare function and tableSize
 // set Func to NULL to Use the default hash function and compare function
 // the default hash function is pjwHash on whole key, and the default compare function is memcmp on whole key
-SimpleHashTable_t SimpleHashTable_createHashTableWithSize(int elementSize, HashFunc hashFunc, CompareFunc compareFunc, int tableSize);
+SimpleHashTable_t SimpleHashTable_createWithSize(int elementSize, HashFunc keyHashFunc, CompareFunc keyCompareFunc, int tableSize);
 
 // destroy the hash table, and call the destructor on every element if it is not NULL
-void SimpleHashTable_destroyHashTable(SimpleHashTable_t hashTable, Destructor destructorForKey, Destructor destructorForElement);
+void SimpleHashTable_destroy(SimpleHashTable_t hashTable, Destructor destructorForKey, Destructor destructorForElement);
 
 // force insert the element with the key, and call the destructor if the key already exists and it is not NULL
 void SimpleHashTable_forceInsert(SimpleHashTable_t hashTable, const void* key, int keySize, const void* element, Destructor destructorForKey, Destructor destructorForElement);

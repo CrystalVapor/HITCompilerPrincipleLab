@@ -147,7 +147,7 @@ void printError(FILE *file) {
 
 void resetErrorReporter() {
     if (errorTable != NULL) {
-        SimpleHashTable_destroyHashTable(errorTable, NULL, freeErrorInfo);
+        SimpleHashTable_destroy(errorTable, NULL, freeErrorInfo);
     }
     errorTable = NULL;
     errorFile = NULL;

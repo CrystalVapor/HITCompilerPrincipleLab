@@ -51,10 +51,6 @@ void printAllNodes();
 
 void printParserNode(ParserNode_I nodeIndex, int depth);
 
-void reportSyntaxError(int lineNum, const char* msg);
-
-void reportLexicalError(int lineNum, const char *msg, const char *token);
-
 void yyerror(const char* msg);
 
 #endif //LAB1_PARSERNODES_H

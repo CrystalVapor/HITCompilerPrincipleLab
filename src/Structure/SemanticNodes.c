@@ -9,8 +9,6 @@
 SimpleArray_t semanticNodes;
 SemanticNode_I rootIndex;
 
-SymbolTableStack_t symbolTableStack;
-
 int initSemanticTree(ParserNode_I parserTreeRoot) {
     rootIndex = parserTreeRoot;
 }

@@ -21,7 +21,7 @@ void setParserTreeRoot(ParserNode_I InRootIndex){
 ParserNode_I newParserNode(int symbol, int lineNum, int childNum, ParserNode_I *children, ParserNode_I fatherNodeIndex) {
     if(parserNodes == NULL)
     {
-        parserNodes = SimpleArray_newArray(sizeof(ParserNode));
+        parserNodes = SimpleArray_create(sizeof(ParserNode));
     }
     ParserNode node;
     node.token = symbol;
@@ -57,11 +57,11 @@ ParserNode_t getParserNode(ParserNode_I index){
     return (ParserNode_t)SimpleArray_getElement(parserNodes, index);
 }
 
-void freeParserNodeContent(ParserNode_I index) {
-    ParserNode_t node = getParserNode(index);
+void freeParserNode(void *nodeToFree) {
+    ParserNode_t node = (ParserNode_t)nodeToFree;
     if(node->children != NULL)
     {
-        SimpleArray_freeSimpleArray(node->children);
+        SimpleArray_destroy(node->children, NULL);
     }
     if(node->token == ID || node->token == TYPE)
     {
@@ -70,14 +70,7 @@ void freeParserNodeContent(ParserNode_I index) {
 }
 
 void freeParserNodes(){
-    if(parserNodes != NULL)
-    {
-        for(int i = 0; i < parserNodes->num; i++)
-        {
-            freeParserNodeContent(i);
-        }
-        SimpleArray_freeSimpleArray(parserNodes);
-    }
+    SimpleArray_destroy(parserNodes, freeParserNode);
 }
 
 int ParserNodeIndexContainer_addNodeIndex(ParserNodeIndexContainer_t container, ParserNode_I index){
@@ -258,15 +251,6 @@ void printParserNode(ParserNode_I nodeIndex, int depth) {
                 break;
         }
     }
-}
-
-void reportSyntaxError(int lineNum, const char *msg) {
-
-    fprintf(stderr, "Error type B at Line %d: %s\n", lineNum, msg);
-}
-
-void reportLexicalError(int lineNum, const char *msg, const char *token) {
-    fprintf(stderr, "Error type A at Line %d: %s%s\n", lineNum, msg, token);
 }
 
 void yyerror(const char *msg) {
