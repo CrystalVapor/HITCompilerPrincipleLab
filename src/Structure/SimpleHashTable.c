@@ -16,7 +16,7 @@ void SimpleHashTablePair_setPair(SimpleHashTablePair_t pair, const void* key, in
     memcpy(pair->element, element, elementSize);
 }
 
-void SimpleHashTablePair_clearPair(SimpleHashTablePair_t pair, Destructor destructorForKey, Destructor destructorForElement)
+void SimpleHashTablePair_destroy(SimpleHashTablePair_t pair, Destructor destructorForKey, Destructor destructorForElement)
 {
     if(destructorForKey != NULL)
     {
@@ -77,12 +77,12 @@ void SimpleHashTable_destroy(SimpleHashTable_t hashTable, Destructor destructorF
     if(hashTable == NULL)
         return;
     for (int i = 0; i < THOUSAND_HASH_TABLE_SIZE; i++) {
-        SimpleArray_t list = *((SimpleArray_t*)SimpleArray_getElement(hashTable->data, i));
+        SimpleArray_t list = *((SimpleArray_t*) SimpleArray_at(hashTable->data, i));
         if (list != NULL) {
             for(int j = 0; j < list->num; j++)
             {
-                SimpleHashTablePair_t pair = (SimpleHashTablePair_t)SimpleArray_getElement(list, j);
-                SimpleHashTablePair_clearPair(pair, destructorForKey, destructorForElement);
+                SimpleHashTablePair_t pair = (SimpleHashTablePair_t) SimpleArray_at(list, j);
+                SimpleHashTablePair_destroy(pair, destructorForKey, destructorForElement);
             }
             SimpleArray_destroy(list, NULL);
         }
@@ -93,14 +93,14 @@ void SimpleHashTable_destroy(SimpleHashTable_t hashTable, Destructor destructorF
 
 int SimpleHashTable_insert(SimpleHashTable_t hashTable, const void* key, int keySize, const void* element) {
     int index = hashTable->hashFunc(key, keySize, hashTable->tableSize);
-    SimpleArray_t list = *((SimpleArray_t*)SimpleArray_getElement(hashTable->data, index));
+    SimpleArray_t list = *((SimpleArray_t*) SimpleArray_at(hashTable->data, index));
     if (list == NULL) {
         list = SimpleArray_newArrayWithCapacity(sizeof(SimpleHashTablePair), DEFAULT_HASH_BUCKET_SIZE);
         SimpleArray_setElement(hashTable->data, index, &list);
     }
     for(int i = 0; i < list->num; i++)
     {
-        SimpleHashTablePair_t pair = (SimpleHashTablePair_t)SimpleArray_getElement(list, i);
+        SimpleHashTablePair_t pair = (SimpleHashTablePair_t) SimpleArray_at(list, i);
         if(pair->keySize == keySize && hashTable->compareFunc(pair->key, key, keySize) == 0)
         {
             return -1;
@@ -114,13 +114,13 @@ int SimpleHashTable_insert(SimpleHashTable_t hashTable, const void* key, int key
 
 void* SimpleHashTable_find(SimpleHashTable_t hashTable, const void* key, int keySize) {
     int index = hashTable->hashFunc(key, keySize, hashTable->tableSize);
-    SimpleArray_t list = *((SimpleArray_t*)SimpleArray_getElement(hashTable->data, index));
+    SimpleArray_t list = *((SimpleArray_t*) SimpleArray_at(hashTable->data, index));
     if (list == NULL)
     {
         return NULL;
     }
     for (int i = 0; i < list->num; i++) {
-        SimpleHashTablePair_t pair = (SimpleHashTablePair_t)SimpleArray_getElement(list, i);
+        SimpleHashTablePair_t pair = (SimpleHashTablePair_t) SimpleArray_at(list, i);
         if(pair->keySize == keySize && hashTable->compareFunc(pair->key, key, keySize) == 0)
         {
             return pair->element;
@@ -131,16 +131,16 @@ void* SimpleHashTable_find(SimpleHashTable_t hashTable, const void* key, int key
 
 void SimpleHashTable_removeWithDestructor(SimpleHashTable_t hashTable, const void* key, int keySize, Destructor destructorForKey, Destructor destructorForElement) {
     int index = hashTable->hashFunc(key, keySize, hashTable->tableSize);
-    SimpleArray_t list = *((SimpleArray_t*)SimpleArray_getElement(hashTable->data, index));
+    SimpleArray_t list = *((SimpleArray_t*) SimpleArray_at(hashTable->data, index));
     if (list == NULL)
     {
         return;
     }
     for (int i = 0; i < list->num; i++) {
-        SimpleHashTablePair_t pair = (SimpleHashTablePair_t)SimpleArray_getElement(list, i);
+        SimpleHashTablePair_t pair = (SimpleHashTablePair_t) SimpleArray_at(list, i);
         if(pair->keySize == keySize && hashTable->compareFunc(pair->key, key, keySize) == 0)
         {
-            SimpleHashTablePair_clearPair(pair, destructorForKey, destructorForElement);
+            SimpleHashTablePair_destroy(pair, destructorForKey, destructorForElement);
             SimpleArray_removeElement(list, i, NULL);
             return;
         }
@@ -151,10 +151,10 @@ void SimpleHashTable_traverse(SimpleHashTable_t hashTable, TraverseFunc traverse
     if(traverseFunc == NULL)
         return;
     for (int i = 0; i < hashTable->tableSize; i++) {
-        SimpleArray_t list = *((SimpleArray_t*)SimpleArray_getElement(hashTable->data, i));
+        SimpleArray_t list = *((SimpleArray_t*) SimpleArray_at(hashTable->data, i));
         if (list != NULL) {
             for (int j = 0; j < list->num; j++) {
-                SimpleHashTablePair_t pair = (SimpleHashTablePair_t)SimpleArray_getElement(list, j);
+                SimpleHashTablePair_t pair = (SimpleHashTablePair_t) SimpleArray_at(list, j);
                 traverseFunc(pair->element);
             }
         }
@@ -164,17 +164,17 @@ void SimpleHashTable_traverse(SimpleHashTable_t hashTable, TraverseFunc traverse
 void SimpleHashTable_forceInsert(SimpleHashTable_t hashTable, const void *key, int keySize, const void *element,
                                  Destructor destructorForKey, Destructor destructorForElement) {
     int index = hashTable->hashFunc(key, keySize, hashTable->tableSize);
-    SimpleArray_t list = *((SimpleArray_t*)SimpleArray_getElement(hashTable->data, index));
+    SimpleArray_t list = *((SimpleArray_t*) SimpleArray_at(hashTable->data, index));
     if (list == NULL) {
         list = SimpleArray_newArrayWithCapacity(sizeof(SimpleHashTablePair), DEFAULT_HASH_BUCKET_SIZE);
         SimpleArray_setElement(hashTable->data, index, &list);
     }
     for(int i = 0; i < list->num; i++)
     {
-        SimpleHashTablePair_t pair = (SimpleHashTablePair_t)SimpleArray_getElement(list, i);
+        SimpleHashTablePair_t pair = (SimpleHashTablePair_t) SimpleArray_at(list, i);
         if(pair->keySize == keySize && hashTable->compareFunc(pair->key, key, keySize) == 0)
         {
-            SimpleHashTablePair_clearPair(pair, destructorForKey, destructorForElement);
+            SimpleHashTablePair_destroy(pair, destructorForKey, destructorForElement);
             SimpleHashTablePair_setPair(pair, key, keySize, element, hashTable->elementSize);
             return;
         }

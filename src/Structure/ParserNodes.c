@@ -54,7 +54,7 @@ ParserNode_I newParserNode(int symbol, int lineNum, int childNum, ParserNode_I *
 }
 
 ParserNode_t getParserNode(ParserNode_I index){
-    return (ParserNode_t)SimpleArray_getElement(parserNodes, index);
+    return (ParserNode_t) SimpleArray_at(parserNodes, index);
 }
 
 void freeParserNode(void *nodeToFree) {
@@ -82,7 +82,7 @@ ParserNodeIndexContainer_t ParserNodeIndexContainer_createContainer(){
 }
 
 ParserNode_t ParserNodeIndexContainer_getNode(ParserNodeIndexContainer_t container, int index){
-    ParserNode_I* indexPtr = (ParserNode_I*)SimpleArray_getElement(container, index);
+    ParserNode_I* indexPtr = (ParserNode_I*) SimpleArray_at(container, index);
     return getParserNode(*indexPtr);
 }
 
@@ -166,7 +166,7 @@ int stoi(const char* str){
 }
 
 ParserNode_I ParserNodeIndexContainer_getNodeIndex(ParserNodeIndexContainer_t container, int index) {
-    return *((ParserNode_I *) SimpleArray_getElement(container, index));
+    return *((ParserNode_I *) SimpleArray_at(container, index));
 }
 
 ParserNode_I getParserTreeRoot() {

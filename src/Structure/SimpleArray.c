@@ -30,7 +30,7 @@ int SimpleArray_addElement(SimpleArray_t array, const void* element){
     return array->num - 1;
 }
 
-void* SimpleArray_getElement(SimpleArray_t array, int index){
+void* SimpleArray_at(SimpleArray_t array, int index){
     if(index < 0 || index >= array->num){
         return NULL;
     }
@@ -97,7 +97,7 @@ int SimpleArray_pushBack(SimpleArray_t array, void *element) {
 }
 
 void * SimpleArray_back(SimpleArray_t array) {
-    return SimpleArray_getElement(array, array->num - 1);
+    return SimpleArray_at(array, array->num - 1);
 }
 
 int SimpleArray_size(SimpleArray_t array) {

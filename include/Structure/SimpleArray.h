@@ -30,7 +30,7 @@ int SimpleArray_addElement(SimpleArray_t array, const void* element);
 
 // Get the element at the index, will check if the index is valid
 // do not save the pointer of the element, it may be invalid after the array is modified
-void* SimpleArray_getElement(SimpleArray_t array, int index);
+void* SimpleArray_at(SimpleArray_t array, int index);
 
 // Free the simple array with destructor, will free the memory of the array and the elements
 void SimpleArray_destroy(SimpleArray_t array, Destructor elementDestructor);
