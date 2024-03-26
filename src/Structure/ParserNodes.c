@@ -27,6 +27,7 @@ ParserNode_I newParserNode(int symbol, int lineNum, int childNum, ParserNode_I *
     node.token = symbol;
     node.lineNum = lineNum;
     node.children = NULL;
+    node.semanticInfo = NULL;
     switch (symbol) {
         case ID:
         case TYPE:

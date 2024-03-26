@@ -8,9 +8,15 @@
 #include "SimpleArray.h"
 #include "SimpleHashTable.h"
 
-#define SYMBOL_TABLE_DEBUG
+//#define SYMBOL_TABLE_DEBUG
+
+#define SYMBOL_TABLE_DEBUG_NAME
 
 #ifdef SYMBOL_TABLE_DEBUG
+#define SYMBOL_TABLE_DEBUG_NAME
+#endif
+
+#ifdef SYMBOL_TABLE_DEBUG_NAME
 #define SYMBOL_TABLE_STRUCT_NAME
 #define SYMBOL_TABLE_FUNCTION_NAME
 #endif
@@ -184,7 +190,12 @@ SymbolTable_createVariable(SymbolTable_t table, SymbolRecord *outRecord, Symbol_
  * @param table             the symbol table
  * @param outRecord         the output record
  * @param returnType        the return type of the function
+ * @param returnTypeMeta    the meta data of the return type
+ *                          <code>NULL</code> if the parameter is not a struct or an array
+ *                          <code>char[]</code> if the parameter is a struct, name of the struct without prefix, will be DUPLICATED
+ *                          <code>SymbolInfo_Array_t</code> (create by SymbolInfo_Array_create, need to be raw) if the parameter is an array, will take its ownership
  * @param parameterTypes    an array of parameter types, length must match the parameterCount
+ * @param parameterNames    an array of parameter names, length must match the parameterCount, all content will be DUPLICATED if name is not NULL
  * @param parametersMeta    an array of parameter metadata, length must match the parameterCount
  *                          <code>NULL</code> if the parameter is not a struct or an array
  *                          <code>char[]</code> if the parameter is a struct, represent the name of the struct without the nextScopeID prefix
@@ -201,8 +212,9 @@ SymbolTable_createFunction(SymbolTable_t table, SymbolRecord *outRecord, Symbol_
 /** Create a blank struct record with valid struct info, will auto bake all the metadata in the given symbol table.
  * @param table The symbol table.
  * @param outRecord The output record.
- * @param memberTypes An array of member types.
- * @param memberMeta An array of member metadata.
+ * @param memberTypes An array of member types, length must match the memberCount.
+ * @param memberNames An array of member names, length must match the memberCount, all content will be duplicated, memberName cannot be NULL.
+ * @param memberMetas An array of member metadata.
  *                    <code>NULL</code> if the member is not a struct or an array.
  *                    <code>char[]</code> if the member is a struct, represent the name of the struct without the nextScopeID prefix.
  *                    <code>SymbolInfo_Array_t</code> (create by <code>SymbolInfo_Array_create</code>, **need to be raw**) if the member is an array.
@@ -212,7 +224,7 @@ SymbolTable_createFunction(SymbolTable_t table, SymbolRecord *outRecord, Symbol_
  */
 SymbolTable_Error
 SymbolTable_createStruct(SymbolTable_t table, SymbolRecord *outRecord, Symbol_Value_Type *memberTypes,
-                         char **memberNames, void **memberMeta, int memberCount);
+                         char **memberNames, void **memberMetas, int memberCount);
 
 ////////////////////////////////////////
 /// SymbolInfo

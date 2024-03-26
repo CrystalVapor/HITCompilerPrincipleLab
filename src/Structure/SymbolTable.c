@@ -89,7 +89,7 @@ int SymbolTable_internalLookupRecord(SymbolTable_t table, char *name, SymbolReco
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "+%d_%s", scope, name);
 #ifdef SYMBOL_TABLE_DEBUG
-        printf("Looking up %s\n", buffer);
+        printf("Looking up \"%s\"\n", buffer);
 #endif
         SymbolRecord_t record = SimpleHashTable_find(table->table, buffer, (int)strlen(buffer)+1);
         if(record != NULL){
@@ -98,7 +98,7 @@ int SymbolTable_internalLookupRecord(SymbolTable_t table, char *name, SymbolReco
         }
     }
 #ifdef SYMBOL_TABLE_DEBUG
-    printf("Failed to find %s\n", name);
+    printf("Failed to find \"%s\"\n", name);
 #endif
     *outRecord = NULL;
     return -1;
@@ -124,11 +124,11 @@ int SymbolTable_insertRecord(SymbolTable_t table, char *name, SymbolRecord_t rec
     int result = SimpleHashTable_insert(table->table, fullNameBuffer, (int)strlen(fullNameBuffer) + 1, record);
     if(result == 0){
         SymbolRecord_printDebug(record, debugBuffer, 1024);
-        printf("Inserted record %s: %s\n", fullNameBuffer, debugBuffer);
+        printf("Inserted record \"%s\": %s\n", fullNameBuffer, debugBuffer);
     }
     else
     {
-        printf("Failed to insert record %s: %s\n", fullNameBuffer, debugBuffer);
+        printf("Failed to insert record \"%s\": %s\n", fullNameBuffer, debugBuffer);
     }
     return result;
 #endif
@@ -175,8 +175,8 @@ SymbolTable_createFunction(SymbolTable_t table, SymbolRecord *outRecord, Symbol_
 
 SymbolTable_Error
 SymbolTable_createStruct(SymbolTable_t table, SymbolRecord *outRecord, Symbol_Value_Type *memberTypes,
-                         char **memberNames, void **memberMeta, int memberCount) {
-    SymbolInfo_Struct_Raw rawInfo = SymbolInfo_Struct_create(memberTypes, memberNames, memberMeta, memberCount);
+                         char **memberNames, void **memberMetas, int memberCount) {
+    SymbolInfo_Struct_Raw rawInfo = SymbolInfo_Struct_create(memberTypes, memberNames, memberMetas, memberCount);
     int errorMemberIndex = 0;
     SymbolTable_Error bakeResult = SymbolInfo_Struct_bake(table, rawInfo, &errorMemberIndex);
     if(bakeResult != SE_Success){
@@ -702,6 +702,20 @@ int SymbolRecord_isSymbolDefined(SymbolRecord_t record) {
 void SymbolInfo_Variable_printDebug(SymbolInfo_t variableInfo, char *buffer, int size) {
     SymbolInfo_Variable_t info = (SymbolInfo_Variable_t)variableInfo;
     SymbolInfo_DebugHelper_getTypeString(info->type, info->meta, buffer, size);
+    if(info->type == SVT_Struct){
+        char structDefBuffer[256];
+        SymbolInfo_Struct_printDebug(info->meta, structDefBuffer, sizeof(structDefBuffer));
+        snprintf(buffer+strlen(buffer), size-strlen(buffer), "\n\tVariable %s", structDefBuffer);
+    }
+    if(info->type == SVT_Array)
+    {
+        SymbolInfo_Array_t arrayInfo = info->meta;
+        if(arrayInfo->elementType == SVT_Struct){
+            char structDefBuffer[256];
+            SymbolInfo_Struct_printDebug(arrayInfo->elementStructInfo, structDefBuffer, sizeof(structDefBuffer));
+            snprintf(buffer+strlen(buffer), size-strlen(buffer), "\n\tArray %s", structDefBuffer);
+        }
+    }
 }
 
 void SymbolInfo_Function_printDebug(SymbolInfo_t functionInfo, char *buffer, int size) {
@@ -724,21 +738,45 @@ void SymbolInfo_Function_printDebug(SymbolInfo_t functionInfo, char *buffer, int
         }
     }
     snprintf(buffer+offset, size-offset, ")");
+    if(info->returnType== SVT_Struct){
+        char structDefBuffer[256];
+        SymbolInfo_Struct_printDebug(info->returnTypeMeta, structDefBuffer, sizeof(structDefBuffer));
+        snprintf(buffer+strlen(buffer), size-strlen(buffer), "\n\tReturn %s", structDefBuffer);
+    }
+    for(int i = 0; i < info->parameterCount; i++) {
+        SymbolInfo_Parameter_t param = info->parameters[i];
+        if(param->parameterType == SVT_Struct){
+            char structDefBuffer[256];
+            SymbolInfo_Struct_printDebug(param->parameterMeta, structDefBuffer, sizeof(structDefBuffer));
+            snprintf(buffer+strlen(buffer), size-strlen(buffer), "\n\tParam [%d] %s", i, structDefBuffer);
+        }
+    }
 }
 
 void SymbolInfo_Struct_printDebug(SymbolInfo_t structInfo, char *buffer, int size) {
     SymbolInfo_Struct_t info = (SymbolInfo_Struct_t)structInfo;
-    snprintf(buffer, size, "Struct: ");
-#ifdef SYMBOL_TABLE_STRUCT_NAME
-    snprintf(buffer, size, "%s%s ", buffer, info->structName == NULL ? "NULL" : info->structName);
+#ifndef SYMBOL_TABLE_STRUCT_NAME
+    snprintf(buffer, size, "Struct: {");
+#else
+    snprintf(buffer, size, "Struct \"%s\": {", info->structName == NULL ? "NULL" : info->structName);
 #endif
+    int offset = (int)strlen(buffer);
     for(int i = 0; i < info->memberCount; i++){
         char memberTypeBuffer[256];
         SymbolInfo_Member_t memberInfo = info->members[i];
         SymbolInfo_DebugHelper_getTypeString(memberInfo->memberType, memberInfo->memberMeta, memberTypeBuffer, sizeof(memberTypeBuffer));
-        snprintf(buffer, size, "%s%s %s", buffer, memberTypeBuffer, memberInfo->memberName == NULL ? "NULL" : memberInfo->memberName);
+        offset += snprintf(buffer+offset, size-offset, "%s %s", memberTypeBuffer, memberInfo->memberName == NULL ? "NULL" : memberInfo->memberName);
         if(i != info->memberCount - 1){
-            snprintf(buffer, size, "%s, ", buffer);
+            offset += snprintf(buffer+offset, size-offset, ", ");
+        }
+    }
+    snprintf(buffer+offset, size-offset, "}");
+    for(int i = 0; i < info->memberCount; i++) {
+        SymbolInfo_Member_t member = info->members[i];
+        if(member->memberType == SVT_Struct){
+            char structDefBuffer[256];
+            SymbolInfo_Struct_printDebug(member->memberMeta, structDefBuffer, sizeof(structDefBuffer));
+            snprintf(buffer+strlen(buffer), size-strlen(buffer), "\n\tMember [%s] %s", member->memberName, structDefBuffer);
         }
     }
 }
@@ -755,7 +793,7 @@ void SymbolInfo_DebugHelper_getTypeString(Symbol_Value_Type e, void* meta, char 
 #ifndef SYMBOL_TABLE_STRUCT_NAME
             snprintf(buffer, bufferSize, "struct");
 #else
-            snprintf(buffer, bufferSize, "struct %s", SymbolInfo_Struct_getName((SymbolInfo_Struct_t)meta));
+            snprintf(buffer, bufferSize, "struct \"%s\"", SymbolInfo_Struct_getName((SymbolInfo_Struct_t)meta));
 #endif
             break;
         case SVT_Array: {

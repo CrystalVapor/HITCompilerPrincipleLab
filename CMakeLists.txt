@@ -57,7 +57,7 @@ target_link_libraries(ErrorReporter SimpleContainers)
 add_library(ParserAnalyzer STATIC src/Structure/ParserNodes.c src/Structure/TokenName.c)
 target_link_libraries(ParserAnalyzer Parser Lexer ErrorReporter)
 
-add_library(SemanticAnalyzer STATIC src/Structure/SymbolTable.c src/Structure/SemanticNodes.c src/SemanticAnalyzer.c)
+add_library(SemanticAnalyzer STATIC src/Structure/SymbolTable.c src/Structure/SemanticInfo.c src/SemanticAnalyzer.c)
 target_link_libraries(SemanticAnalyzer ParserAnalyzer ErrorReporter)
 
 # Compile the project

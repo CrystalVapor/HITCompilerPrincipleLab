@@ -33,24 +33,25 @@ typedef enum ErrorType_e{
 
     SEMANTIC_ERROR_BASE = 100,
 
-    UndefinedVariable,
-    UndefinedFunctionCalled,
-    VariableRedefinition,
-    FunctionRedefinition,
-    TypeMismatch_Assignment,
-    RvalueAssignment,
-    TypeMismatch_Operator,
-    TypeMismatch_Return,
-    ArgListMismatch,
-    ArrayAccessOnNonArra,
-    FunctionCalledOnNonFunction,
-    NonIntegerIndex,
-    StructMemberAccessOnNonStruct,
-    UndefinedStructMember,
-    StructMemberRedefinition,
-    StructRedefinition,
-    UndefinedExternalFunction,
-    ImplicitFunctionDeclaration,
+    UndefinedVariable,          // Error 1
+    UndefinedFunctionCalled,    // Error 2
+    VariableRedefinition,       // Error 3
+    FunctionRedefinition,       // Error 4
+    AssignmentTypeMismatch,     // Error 5
+    AssignToRvalue,             // Error 6
+    OperatorTypeMismatch,       // Error 7
+    ReturnTypeMismatch,         // Error 8
+    ParameterListMismatch,      // Error 9
+    ArrayAccessOnNonArray,      // Error 10
+    FunctionCalledOnNonFunction,// Error 11
+    ArrayIndexTypeMismatch,     // Error 12
+    MemberAccessOnNonStruct,    // Error 13
+    UndefinedStructMember,      // Error 14
+    InvalidMemberDefinition,    // Error 15
+    ConflictStructDefinition,   // Error 16
+    UndefinedStruct,            // Error 17
+    UndefinedExternalFunction,  // Error 18
+    ImplicitFunctionDeclaration,// Error 19
 
     UNDEF_SEMANTIC_ERROR = 149,
 }ErrorType;
