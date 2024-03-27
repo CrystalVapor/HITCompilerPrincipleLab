@@ -8,124 +8,116 @@
 
 #include "Structure/SemanticInfo.h"
 
-int SymbolInfo_isVariableTypeMatched(SymbolInfo_Variable_t a, SymbolInfo_Variable_t b);
-int SymbolInfo_isFunctionTypeMatched(SymbolInfo_Function_t a, SymbolInfo_Function_t b);
 int SymbolInfo_isStructTypeMatched(SymbolInfo_Struct_t a, SymbolInfo_Struct_t b);
 int SymbolInfo_isArrayTypeMatched(SymbolInfo_Array_t a, SymbolInfo_Array_t b);
-int SymbolInfo_Helper_isTypeMatched(Symbol_Value_Type aType, SymbolInfo_t aMeta, Symbol_Value_Type bType, SymbolInfo_t bMeta);
 
-SemanticInfo_t SemanticInfo_create(int scope, SymbolInfo_t symbolInfo) {
+SemanticInfo_t SemanticInfo_createLvalue(Symbol_Value_Type valueType, SymbolInfo_t valueInfo, int scope, SimpleArray_t semanticInfoList) {
     SemanticInfo_t semanticInfo = (SemanticInfo_t)malloc(sizeof(SemanticInfo));
+    semanticInfo->isLValue = 1;
     semanticInfo->scope = scope;
-    semanticInfo->symbolInfo = symbolInfo;
+    semanticInfo->valueType = SVT_Void;
+    semanticInfo->valueInfo = valueInfo;
+    SimpleArray_pushBack(semanticInfoList, semanticInfo);
+    return semanticInfo;
+}
+
+SemanticInfo_t SemanticInfo_createRvalue(Symbol_Value_Type valueType, SymbolInfo_t valueInfo, SimpleArray_t semanticInfoList) {
+    SemanticInfo_t semanticInfo = (SemanticInfo_t)malloc(sizeof(SemanticInfo));
+    semanticInfo->isLValue = 0;
+    semanticInfo->scope = INVALID_SCOPE;
+    semanticInfo->valueType = valueType;
+    semanticInfo->valueInfo = valueInfo;
+    SimpleArray_pushBack(semanticInfoList, semanticInfo);
+    return semanticInfo;
+}
+
+SemanticInfo_t SemanticInfo_makeRvalue(SemanticInfo_t semanticInfo, SimpleArray_t semanticInfoList){
+    if(semanticInfo->isLValue)
+    {
+        return SemanticInfo_createRvalue(semanticInfo->valueType, semanticInfo->valueInfo, semanticInfoList);
+    }
     return semanticInfo;
 }
 
 void SemanticInfo_destroy(void *semanticInfoToDestroy) {
-    free(semanticInfoToDestroy);
+    SemanticInfo_t* semanticInfo = (SemanticInfo_t*)semanticInfoToDestroy;
+    free(*semanticInfo);
 }
 
 int SemanticInfo_isTypeMatched(SemanticInfo_t a, SemanticInfo_t b) {
-    if(a->type != b->type) {
-        return 0;
-    }
-    switch (a->type) {
-        case ST_Variable:
-            return SymbolInfo_isVariableTypeMatched((SymbolInfo_Variable_t)a->symbolInfo, (SymbolInfo_Variable_t)b->symbolInfo);
-        case ST_Function:
-            return SymbolInfo_isFunctionTypeMatched((SymbolInfo_Function_t)a->symbolInfo, (SymbolInfo_Function_t)b->symbolInfo);
-        case ST_Struct:
-            return SymbolInfo_isStructTypeMatched((SymbolInfo_Struct_t)a->symbolInfo, (SymbolInfo_Struct_t)b->symbolInfo);
-        default:
-            return 0;
-    }
-}
-
-int SemanticInfo_isReturnTypeMatched(SymbolInfo_Function_t functionInfo, SemanticInfo_t returnVariable) {
-    if(returnVariable->type != ST_Variable)
+    if(a==NULL || b==NULL)
     {
         return 0;
     }
-    SymbolInfo_Variable_t variableInfo = (SymbolInfo_Variable_t)returnVariable->symbolInfo;
-    return SymbolInfo_Helper_isTypeMatched(variableInfo->type, variableInfo->meta, functionInfo->returnType, functionInfo->returnTypeMeta);
+    return SymbolInfo_Helper_isTypeMatched(a->valueType, a->valueInfo, b->valueType, b->valueInfo);
 }
 
-int SemanticInfo_isParameterListMatched(SymbolInfo_Function_t functionInfo, SemanticInfo_t *parameterList,
-                                        int parameterCount) {
-    if(functionInfo->parameterCount == parameterCount) {
-        for(int i = 0; i < parameterCount; i++) {
+int SymbolInfo_Function_isReturnTypeMatched(SymbolInfo_Function_t a, SymbolInfo_Function_t b){
+    return SymbolInfo_Helper_isTypeMatched(a->returnType, a->returnTypeMeta, b->returnType, b->returnTypeMeta);
+}
 
-            if(parameterList[i]->type != ST_Variable) {
-                return 0;
-            }
-            SymbolInfo_Variable_t variableInfo = (SymbolInfo_Variable_t)parameterList[i]->symbolInfo;
-            SymbolInfo_Parameter_t parameter = functionInfo->parameters[i];
-            if(!SymbolInfo_Helper_isTypeMatched(variableInfo->type,
-                                                variableInfo->meta,
-                                                parameter->parameterType,
-                                                parameter->parameterMeta)) {
-                return 0;
-            }
+int SymbolInfo_Function_isParameterListMatched(SymbolInfo_Function_t a, SymbolInfo_Function_t b){
+    if(a->parameterCount != b->parameterCount)
+    {
+        return 0;
+    }
+    for(int i = 0; i < a->parameterCount; i++)
+    {
+        SymbolInfo_Parameter_t aParameter = a->parameters[i];
+        SymbolInfo_Parameter_t bParameter = b->parameters[i];
+        if(!SymbolInfo_Helper_isTypeMatched(aParameter->parameterType,
+                                            aParameter->parameterMeta,
+                                            bParameter->parameterType,
+                                            bParameter->parameterMeta))
+        {
+            return 0;
         }
-        return 1;
     }
-    return 0;
+    return 1;
 }
 
-int SemanticInfo_checkSymbolType(SemanticInfo_t semanticInfo, SymbolType type) {
-    return semanticInfo->type == type;
+
+int SemanticInfo_checkValueType(SemanticInfo_t semanticInfo, Symbol_Value_Type type){
+    return semanticInfo->valueType == type;
 }
 
-int SemanticInfo_checkVariableType(SemanticInfo_t semanticInfo, Symbol_Value_Type type) {
-    if(semanticInfo->type != ST_Variable) {
+int SemanticInfo_checkReturnType(SymbolInfo_Function_t functionInfo, SemanticInfo_t semanticInfo){
+    return SymbolInfo_Helper_isTypeMatched(semanticInfo->valueType, semanticInfo->valueInfo,
+                                           functionInfo->returnType, functionInfo->returnTypeMeta);
+}
+
+int SemanticInfo_checkParameterList(SymbolInfo_Function_t functionInfo, SemanticInfo_t* semanticInfos, int paramCount){
+    if(functionInfo->parameterCount != paramCount)
+    {
         return 0;
     }
-    SymbolInfo_Variable_t variableInfo = (SymbolInfo_Variable_t)semanticInfo->symbolInfo;
-    return variableInfo->type == type;
+    for(int i = 0; i < paramCount; i++)
+    {
+        SymbolInfo_Parameter_t parameter = functionInfo->parameters[i];
+        if(!SymbolInfo_Helper_isTypeMatched(parameter->parameterType, parameter->parameterMeta,
+                                            semanticInfos[i]->valueType, semanticInfos[i]->valueInfo))
+        {
+            return 0;
+        }
+    }
+    return 1;
 }
 
-int SemanticInfo_hasMember(SemanticInfo_t semanticInfo, const char *memberName) {
-    if(!SemanticInfo_checkVariableType(semanticInfo, SVT_Struct)) {
-        return 0;
+
+SymbolInfo_Member_t SemanticInfo_getMemberInfo(SemanticInfo_t semanticInfo, const char *memberName) {
+    if(!SemanticInfo_checkValueType(semanticInfo, SVT_Struct)) {
+        return NULL;
     }
-    SymbolInfo_Variable_t variableInfo = (SymbolInfo_Variable_t)semanticInfo->symbolInfo;
-    SymbolInfo_Struct_t structInfo = (SymbolInfo_Struct_t)variableInfo->meta;
+    SymbolInfo_Struct_t structInfo = (SymbolInfo_Struct_t)semanticInfo->valueInfo;
     for(int i = 0; i < structInfo->memberCount; i++) {
         SymbolInfo_Member_t member = structInfo->members[i];
         if(strcmp(member->memberName, memberName) == 0) {
-            return 1;
+            return member;
         }
     }
-    return 0;
+    return NULL;
 }
 
-int SymbolInfo_isVariableTypeMatched(SymbolInfo_Variable_t a, SymbolInfo_Variable_t b){
-    return SymbolInfo_Helper_isTypeMatched(a->type, a->meta, b->type, b->meta);
-}
-int SymbolInfo_isFunctionTypeMatched(SymbolInfo_Function_t a, SymbolInfo_Function_t b){
-    if(SymbolInfo_Helper_isTypeMatched(a->returnType,
-                                       a->returnTypeMeta,
-                                       b->returnType,
-                                       b->returnTypeMeta)) {
-        if(a->parameterCount == b->parameterCount)
-        {
-            for(int i = 0; i < a->parameterCount; i++)
-            {
-                SymbolInfo_Parameter_t aParam = a->parameters[i];
-                SymbolInfo_Parameter_t bParam = b->parameters[i];
-                if(!SymbolInfo_Helper_isTypeMatched(aParam->parameterType,
-                                                    aParam->parameterMeta,
-                                                    bParam->parameterType,
-                                                    bParam->parameterMeta))
-                {
-                    return 0;
-                }
-            }
-            return 1;
-        }
-    }
-    return 0;
-}
 int SymbolInfo_isStructTypeMatched(SymbolInfo_Struct_t a, SymbolInfo_Struct_t b){
     if(a->memberCount == b->memberCount)
     {

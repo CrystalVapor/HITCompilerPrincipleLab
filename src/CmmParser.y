@@ -212,7 +212,6 @@ Exp:
     |INT                        %prec pri0  {ParserNode_I children[1] = {$1}; $$ = newParserNode(EXP, NO_LINE_NUMBER, 1, children, INVALID_NODE_INDEX);}
     |FLOAT                      %prec pri0  {ParserNode_I children[1] = {$1}; $$ = newParserNode(EXP, NO_LINE_NUMBER, 1, children, INVALID_NODE_INDEX);}
 
-    |error '\n'                 %prec pri1  {yyerrok; reportError(yylineno, UnexpectedExpression, "Unexpected Expression");}
     |error Exp                  %prec pri1  {yyerrok; reportError(yylineno, UnexpectedExpression, "Unexpected Expression");}
     ;
 

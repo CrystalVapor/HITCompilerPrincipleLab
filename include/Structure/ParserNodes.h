@@ -22,8 +22,11 @@ int ParserNodeIndexContainer_addNodeIndex(ParserNodeIndexContainer_t container, 
 // Get the parser node from the global node container
 ParserNode_t getParserNode(ParserNode_I index);
 
-// free the parser node's content, will free the memory of the node's content
-void freeParserNodeContent(ParserNode_I index);
+ParserNode_I getParserNodeChild(ParserNode_I index, int childIndex);
+
+ParserNode_t getParserNodeChildNode(ParserNode_I index, int childIndex);
+
+int getParserNodeChildNum(ParserNode_I index);
 
 // Free the global node container
 void freeParserNodes();

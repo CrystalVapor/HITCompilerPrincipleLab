@@ -47,7 +47,7 @@ typedef struct YYSTYPE_s YYSTYPE;
 #define YYSTYPE_IS_DECLARED 1
 #include "CmmParser.tab.h"
 
-struct SemanticInfo;
+struct SemanticInfo_s;
 
 struct ParserNode_s{
     int token;
@@ -58,7 +58,7 @@ struct ParserNode_s{
         float floatVal;
         char* ID;
     };
-    struct SemanticInfo* semanticInfo;
+    struct SemanticInfo_s* semanticInfo;
 };
 
 #ifndef NOINCLUDE_CMM_SCANNER_TAB_H

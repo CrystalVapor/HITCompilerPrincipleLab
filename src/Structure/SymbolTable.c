@@ -56,6 +56,10 @@ void SymbolTable_leaveScope(SymbolTable_t table) {
     sprintf(table->scopePrefix, "+%d_", currentScope);
 }
 
+int SymbolTable_getScope(SymbolTable_t table) {
+    return *(int *) SimpleArray_back(table->scopeStack);
+}
+
 char *SymbolTable_generateName(SymbolTable_t table, char *name, char *buffer, int bufferSize) {
     snprintf(buffer, bufferSize, "%s%s", table->scopePrefix, name);
     return buffer + strlen(table->scopePrefix);
@@ -105,6 +109,7 @@ int SymbolTable_internalLookupRecord(SymbolTable_t table, char *name, SymbolReco
 }
 
 int SymbolTable_insertRecord(SymbolTable_t table, char *name, SymbolRecord_t record) {
+    record->scope = SymbolTable_getScope(table);
     char fullNameBuffer[256];
     SymbolTable_generateName(table, name, fullNameBuffer, sizeof(fullNameBuffer));
 #ifdef SYMBOL_TABLE_STRUCT_NAME
@@ -135,7 +140,34 @@ int SymbolTable_insertRecord(SymbolTable_t table, char *name, SymbolRecord_t rec
 }
 
 SymbolTable_Error
-SymbolTable_createVariable(SymbolTable_t table, SymbolRecord *outRecord, Symbol_Value_Type type, void *meta) {
+SymbolTable_createVariable(SymbolTable_t table, SymbolRecord *outRecord, Symbol_Value_Type type, void* meta){
+    SymbolInfo_Variable_t info = SymbolInfo_Variable_createBaked(type, meta);
+    outRecord->type = ST_Variable;
+    outRecord->info = info;
+    return SE_Success;
+}
+
+SymbolTable_Error
+SymbolTable_createFunction(SymbolTable_t table, SymbolRecord *outRecord,
+                           Symbol_Value_Type returnType, void* returnTypeMeta,
+                           Symbol_Value_Type *parameterTypes, char **parameterNames, void **parametersMeta, int parameterCount){
+    SymbolInfo_Function_t info = SymbolInfo_Function_createBaked(returnType, returnTypeMeta, parameterTypes, parameterNames, parametersMeta, parameterCount);
+    outRecord->type = ST_Function;
+    outRecord->info = info;
+    return SE_Success;
+}
+
+SymbolTable_Error
+SymbolTable_createStruct(SymbolTable_t table, SymbolRecord *outRecord,
+                         Symbol_Value_Type *memberTypes, char **memberNames, void **memberMetas, int memberCount){
+    SymbolInfo_Struct_t info = SymbolInfo_Struct_create(memberTypes, memberNames, memberMetas, memberCount);
+    outRecord->type = ST_Struct;
+    outRecord->info = info;
+    return SE_Success;
+}
+
+SymbolTable_Error
+SymbolTable_createVariableByRawMeta(SymbolTable_t table, SymbolRecord *outRecord, Symbol_Value_Type type, void *meta) {
     SymbolInfo_Variable_Raw rawInfo = SymbolInfo_Variable_create(type, meta);
     SymbolTable_Error bakeResult = SymbolInfo_Variable_bake(table, rawInfo);
     if(bakeResult != SE_Success){
@@ -150,9 +182,9 @@ SymbolTable_createVariable(SymbolTable_t table, SymbolRecord *outRecord, Symbol_
 }
 
 SymbolTable_Error
-SymbolTable_createFunction(SymbolTable_t table, SymbolRecord *outRecord, Symbol_Value_Type returnType,
-                           void *returnTypeMeta, Symbol_Value_Type *parameterTypes,
-                           char **parameterNames, void **parametersMeta, int parameterCount) {
+SymbolTable_createFunctionByRawMeta(SymbolTable_t table, SymbolRecord *outRecord, Symbol_Value_Type returnType,
+                                    void *returnTypeMeta, Symbol_Value_Type *parameterTypes,
+                                    char **parameterNames, void **parametersMeta, int parameterCount) {
     SymbolInfo_Function_Raw rawInfo = SymbolInfo_Function_create(returnType, returnTypeMeta, parameterTypes, parameterNames, parametersMeta, parameterCount);
     SymbolTable_Error bakeResult = SymbolInfo_Function_bakeReturnType(table, rawInfo);
     if(bakeResult != SE_Success){
@@ -174,8 +206,8 @@ SymbolTable_createFunction(SymbolTable_t table, SymbolRecord *outRecord, Symbol_
 }
 
 SymbolTable_Error
-SymbolTable_createStruct(SymbolTable_t table, SymbolRecord *outRecord, Symbol_Value_Type *memberTypes,
-                         char **memberNames, void **memberMetas, int memberCount) {
+SymbolTable_createStructByRawMeta(SymbolTable_t table, SymbolRecord *outRecord, Symbol_Value_Type *memberTypes,
+                                  char **memberNames, void **memberMetas, int memberCount) {
     SymbolInfo_Struct_Raw rawInfo = SymbolInfo_Struct_create(memberTypes, memberNames, memberMetas, memberCount);
     int errorMemberIndex = 0;
     SymbolTable_Error bakeResult = SymbolInfo_Struct_bake(table, rawInfo, &errorMemberIndex);
@@ -185,6 +217,25 @@ SymbolTable_createStruct(SymbolTable_t table, SymbolRecord *outRecord, Symbol_Va
         return bakeResult;
     }
     SymbolInfo_Struct_t info = (SymbolInfo_Struct_t)rawInfo;
+    outRecord->type = ST_Struct;
+    outRecord->info = info;
+    return SE_Success;
+}
+
+SymbolTable_Error SymbolTable_createVariableByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info)
+{
+    outRecord->type = ST_Variable;
+    outRecord->info = info;
+    return SE_Success;
+}
+
+SymbolTable_Error SymbolTable_createFunctionByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info) {
+    outRecord->type = ST_Function;
+    outRecord->info = info;
+    return SE_Success;
+}
+
+SymbolTable_Error SymbolTable_createStructByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info) {
     outRecord->type = ST_Struct;
     outRecord->info = info;
     return SE_Success;
@@ -276,6 +327,34 @@ SymbolTable_Error SymbolInfo_Variable_bake(SymbolTable_t table, SymbolInfo_Varia
     }
 }
 
+SymbolInfo_Variable_t SymbolInfo_Variable_createBaked(Symbol_Value_Type type, SymbolInfo_t meta){
+    SymbolInfo_Variable_Raw info = NULL;
+    switch(type){
+        case SVT_Int:
+            info = (SymbolInfo_Variable_Raw)malloc(sizeof(SymbolInfo_Variable));
+            ((SymbolInfo_Variable_Raw)info)->type = SVT_Int;
+            ((SymbolInfo_Variable_Raw)info)->meta = NULL;
+            return info;
+        case SVT_Float:
+            info = (SymbolInfo_Variable_Raw)malloc(sizeof(SymbolInfo_Variable));
+            ((SymbolInfo_Variable_Raw)info)->type = SVT_Float;
+            ((SymbolInfo_Variable_Raw)info)->meta = NULL;
+            return info;
+        case SVT_Struct:
+            info = (SymbolInfo_Variable_Raw)malloc(sizeof(SymbolInfo_Variable));
+            ((SymbolInfo_Variable_Raw)info)->type = SVT_Struct;
+            ((SymbolInfo_Variable_Raw)info)->meta = meta;
+            return info;
+        case SVT_Array:
+            info = (SymbolInfo_Variable_Raw)malloc(sizeof(SymbolInfo_Variable));
+            ((SymbolInfo_Variable_Raw)info)->type = SVT_Array;
+            ((SymbolInfo_Variable_Raw)info)->meta = meta;
+            return info;
+        default:
+            return NULL;
+    }
+}
+
 void SymbolInfo_Variable_destroyRaw(SymbolInfo_Variable_Raw info) {
     if(info == NULL)
         return;
@@ -308,6 +387,17 @@ SymbolInfo_Array_create(Symbol_Value_Type elementType, int *dimensions, int dime
     rawInfo->dimensionCount = dimensionCount;
     rawInfo->elementStructInfo = structName == NULL ? NULL : strdup(structName);
     return rawInfo;
+}
+
+SymbolInfo_Array_t SymbolInfo_Array_createBaked(Symbol_Value_Type elementType, SymbolInfo_t elementStructInfo, int dimensions[], int dimensionCount){
+    if(elementType == SVT_Array)
+        return NULL;
+    SymbolInfo_Array_Raw info = (SymbolInfo_Array_Raw)malloc(sizeof(SymbolInfo_Array));
+    info->elementType = elementType;
+    memcpy(info->dimensions, dimensions, sizeof(int) * dimensionCount);
+    info->dimensionCount = dimensionCount;
+    info->elementStructInfo = elementStructInfo;
+    return info;
 }
 
 SymbolTable_Error SymbolInfo_Array_bake(SymbolTable_t table, SymbolInfo_Array_Raw rawInfo) {
@@ -348,6 +438,7 @@ SymbolInfo_Function_create(Symbol_Value_Type returnType, void *returnTypeMeta, S
     for(int i = 0; i < parameterCount; i++){
         rawInfo->parameters[i] = SymbolInfo_Parameter_create(parameterTypes[i], parameterNames[i], parametersMeta[i]);
     }
+    rawInfo->offset = INVALID_OFFSET;
     return rawInfo;
 }
 
@@ -380,6 +471,22 @@ SymbolTable_Error SymbolInfo_Function_bakeParameters(SymbolTable_t table, Symbol
         }
     }
     return SE_Success;
+}
+
+SymbolInfo_Function_t
+SymbolInfo_Function_createBaked(Symbol_Value_Type returnType, SymbolInfo_t returnTypeMeta, Symbol_Value_Type parameterTypes[],
+                                char *parameterNames[], void *parametersMeta[], int parameterCount){
+    SymbolInfo_Function_Raw rawInfo = (SymbolInfo_Function_Raw)malloc(sizeof(SymbolInfo_Function));
+    rawInfo->returnType = returnType;
+    rawInfo->returnTypeMeta = returnTypeMeta;
+    rawInfo->parameterCount = parameterCount;
+    // cast to void* to make clang-tidy happy
+    rawInfo->parameters = (void*)(SymbolInfo_Parameter_Raw*)malloc(sizeof(SymbolInfo_Parameter_Raw) * parameterCount);
+    for(int i = 0; i < parameterCount; i++){
+        rawInfo->parameters[i] = SymbolInfo_Parameter_createBaked(parameterTypes[i], parameterNames[i], parametersMeta[i]);
+    }
+    rawInfo->offset = INVALID_OFFSET;
+    return rawInfo;
 }
 
 void SymbolInfo_Function_destroyRaw(SymbolInfo_Function_Raw info, int retvalBakeResult, int bakedParameterCount) {
@@ -437,6 +544,26 @@ void SymbolInfo_Function_destroy(SymbolInfo_Function_t info) {
     free(info);
 }
 
+int SymbolInfo_Function_hasParameterName(SymbolInfo_Function_t functionInfo, char* parameterName){
+    if(parameterName == NULL)
+    {
+        return 0;
+    }
+    for(int i = 0; i < functionInfo->parameterCount; i++)
+    {
+        SymbolInfo_Parameter_t parameter = functionInfo->parameters[i];
+        if(parameter->parameterName != NULL && strcmp(parameter->parameterName, parameterName) == 0)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void SymbolInfo_Function_addParameter(SymbolInfo_Function_t functionInfo, SymbolInfo_t parameter){
+    functionInfo->parameters[functionInfo->parameterCount] = parameter;
+    functionInfo->parameterCount++;
+}
 #ifdef SYMBOL_TABLE_FUNCTION_NAME
 /**
  * Get the name of the function.
@@ -484,6 +611,14 @@ SymbolTable_Error SymbolInfo_Parameter_bake(SymbolTable_t table, SymbolInfo_Para
         }
     }
     return SE_Success;
+}
+
+SymbolInfo_Parameter_t SymbolInfo_Parameter_createBaked(Symbol_Value_Type type, char* parameterName, SymbolInfo_t meta){
+    SymbolInfo_Parameter_Raw info = (SymbolInfo_Parameter_Raw)malloc(sizeof(SymbolInfo_Parameter));
+    info->parameterType = type;
+    info->parameterName = parameterName == NULL ? NULL : strdup(parameterName);
+    info->parameterMeta = meta;
+    return info;
 }
 
 void SymbolInfo_Parameter_destroyRaw(SymbolInfo_Parameter_Raw info) {
@@ -541,6 +676,18 @@ SymbolTable_Error SymbolInfo_Struct_bake(SymbolTable_t table, SymbolInfo_Struct_
     return SE_Success;
 }
 
+SymbolInfo_Struct_t
+SymbolInfo_Struct_createBaked(Symbol_Value_Type *memberTypes, char **memberNames, void **memberMeta, int memberCount) {
+    SymbolInfo_Struct_Raw info = (SymbolInfo_Struct_Raw)malloc(sizeof(SymbolInfo_Struct));
+    info->memberCount = memberCount;
+    // cast to void* to make clang-tidy happy
+    info->members = (void*)(SymbolInfo_Member_Raw*)malloc(sizeof(SymbolInfo_Member_Raw) * memberCount);
+    for(int i = 0; i < memberCount; i++){
+        info->members[i] = SymbolInfo_Member_create(memberTypes[i], memberNames[i], memberMeta[i]);
+    }
+    return info;
+}
+
 void SymbolInfo_Struct_destroyRaw(SymbolInfo_Struct_Raw info, int bakedMemberCount) {
     if(info == NULL)
         return;
@@ -579,6 +726,23 @@ void SymbolInfo_Struct_destroy(SymbolInfo_Struct_t info) {
     free(info->members);
     free(info);
 }
+
+int SymbolInfo_Struct_checkMemberName(SymbolInfo_Struct_t info, char* memberName){
+    for(int i = 0; i < info->memberCount; i++){
+        SymbolInfo_Member_t member = info->members[i];
+        if(strcmp(member->memberName, memberName) == 0){
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
+void SymbolInfo_Struct_insertMember(SymbolInfo_Struct_t info, SymbolInfo_t memberInfo){
+    info->members[info->memberCount] = memberInfo;
+    info->memberCount++;
+}
+
 
 #ifdef SYMBOL_TABLE_STRUCT_NAME
 char* SymbolInfo_Struct_getName(SymbolInfo_Struct_t info)
@@ -621,6 +785,14 @@ SymbolTable_Error SymbolInfo_Member_bake(SymbolTable_t table, SymbolInfo_Member_
         }
     }
     return SE_Success;
+}
+
+SymbolInfo_Member_t SymbolInfo_Member_createBaked(Symbol_Value_Type memberType, char* memberName, SymbolInfo_t memberMeta){
+    SymbolInfo_Member_Raw info = (SymbolInfo_Member_Raw)malloc(sizeof(SymbolInfo_Member));
+    info->memberType = memberType;
+    info->memberName = memberName == NULL ? NULL : strdup(memberName);
+    info->memberMeta = memberMeta;
+    return info;
 }
 
 void SymbolInfo_Member_destroyRaw(SymbolInfo_Member_Raw info) {
@@ -695,9 +867,24 @@ SymbolTable_Error SymbolInfo_bakeStructName(SymbolTable_t table, char *structNam
     return SE_Success;
 }
 
+
+
 int SymbolRecord_isSymbolDefined(SymbolRecord_t record) {
-    return 1;
+    switch(record->type){
+        case ST_Variable:
+            return 1;
+        case ST_Function: {
+            SymbolInfo_Function_t functionInfo = (SymbolInfo_Function_t) record->info;
+            return functionInfo->offset != INVALID_OFFSET;
+        }
+        case ST_Struct:
+            return 1;
+        default:
+            return 0;
+    }
 }
+
+
 
 void SymbolInfo_Variable_printDebug(SymbolInfo_t variableInfo, char *buffer, int size) {
     SymbolInfo_Variable_t info = (SymbolInfo_Variable_t)variableInfo;

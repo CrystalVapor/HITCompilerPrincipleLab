@@ -2,6 +2,24 @@
 // Created by Crystal on 2024/3/19.
 //
 
+/** 碎碎念：
+ * 我是个傻逼
+ * 符号创建流程中设计了一套从raw到baked的转换，也就是从拿到struct名称到拿到struct信息的转换
+ * 我以为这样能方便struct变量、struct数组、嵌套struct的创建
+ * 然而tmd到了现在我才发现，这个设计是多余的
+ * 在创建相关符号的时候一定是先查表拿到了struct信息才能创建的
+ * 根本不需要脱裤子放屁地先创建一个raw再bake
+ * 就算是前置声明也肯定是先创建一个空的baked丢进符号表，这个流程里完全没有structname的事
+ * 艹！这个b流程从设计到编写到debug花了我两天
+ * 我是个傻逼
+ * 现在还得回头再搭一套基于全程bakedmeta的流程
+ * 虽说不改也不是不能用，可以直接从struct那里提一个rawmeta出来，但性能浪费我就不说了
+ * 还是码吧，但我tm现在已经不想玩了
+ * 艹
+ * 我是个傻逼
+ * Crystal 2024/3/27 11:50
+ */
+
 #ifndef LAB1_SYMBOLTABLE_H
 #define LAB1_SYMBOLTABLE_H
 
@@ -20,6 +38,8 @@
 #define SYMBOL_TABLE_STRUCT_NAME
 #define SYMBOL_TABLE_FUNCTION_NAME
 #endif
+
+#define INVALID_OFFSET (-1)
 
 ////////////////////////////////////////
 // Enums for SymbolRecord
@@ -89,6 +109,7 @@ typedef void* SymbolInfo_t;
 typedef struct {
     SymbolType type;
     SymbolInfo_t info;
+    int scope;
 } SymbolRecord;
 typedef SymbolRecord* SymbolRecord_t;
 
@@ -99,6 +120,10 @@ void SymbolRecord_printDebug(SymbolRecord_t record, char* buffer, int bufferSize
 ////////////////////////////////////////
 /// SymbolTable
 ////////////////////////////////////////
+
+#define INVALID_SCOPE (-1)
+#define GLOBAL_SCOPE (0)
+#define DEFAULT_SCOPE (-2)
 
 typedef struct SymbolTable_s {
     SimpleHashTable_t table;    // hash table for symbol records, key is full name of symbol, records stored as flat struct SymbolRecord
@@ -133,6 +158,13 @@ void SymbolTable_enterScope(SymbolTable_t table);
  * @param table The symbol table.
  */
 void SymbolTable_leaveScope(SymbolTable_t table);
+
+/**
+ * Get the current scope.
+ * @param table The symbol table.
+ * @return The current scope.
+ */
+int SymbolTable_getScope(SymbolTable_t table);
 
 /**
  * Generate a new name with the current nextScopeID prefix in input buffer.
@@ -170,10 +202,64 @@ int SymbolTable_internalLookupRecord(SymbolTable_t table, char* name, SymbolReco
 int SymbolTable_insertRecord(SymbolTable_t table, char* name, SymbolRecord_t record);
 
 /**
+ * Creates a blank variable record with valid variable info, the meta need to be well-baked.
+ * @param table     The symbol table
+ * @param outRecord The output record, should be a pointer to valid memory of SymbolRecord
+ * @param type      The type of the variable
+ * @param meta      The meta data of the variable
+ *                  <code>NULL</code> if the variable is not a struct or an array
+ *                  baked SymbolInfo_Struct_t if the variable is a struct
+ *                  baked SymbolInfo_Array_t if the variable is an array
+ * @return SE_Success if success, failed otherwise
+ */
+SymbolTable_Error
+SymbolTable_createVariable(SymbolTable_t table, SymbolRecord *outRecord, Symbol_Value_Type type, void* meta);
+
+/**
+ * Creates a blank function record with valid function info, the meta need to be well-baked.
+ * @param table          The symbol table
+ * @param outRecord      The output record, should be a pointer to valid memory of SymbolRecord
+ * @param returnType     The return type of the function
+ * @param returnTypeMeta The meta data of the return type
+ *                       <code>NULL</code> if the parameter is not a struct or an array
+ *                       baked SymbolInfo_Struct_t if the parameter is a struct
+ *                       baked SymbolInfo_Array_t if the parameter is an array
+ * @param parameterTypes An array of parameter types, length must match the parameterCount
+ * @param parameterNames An array of parameter names, length must match the parameterCount, all content will be duplicated if name is not NULL
+ * @param parametersMeta An array of parameter metadata, length must match the parameterCount
+ *                       <code>NULL</code> if the parameter is not a struct or an array
+ *                       baked SymbolInfo_Struct_t if the parameter is a struct
+ *                       baked SymbolInfo_Array_t if the parameter is an array
+ * @param parameterCount The count of the parameters
+ * @return SE_Success if success, failed otherwise
+ */
+SymbolTable_Error
+SymbolTable_createFunction(SymbolTable_t table, SymbolRecord *outRecord,
+                           Symbol_Value_Type returnType, void* returnTypeMeta,
+                           Symbol_Value_Type *parameterTypes, char **parameterNames, void **parametersMeta, int parameterCount);
+
+/**
+ * Creates a blank struct record with valid struct info, the meta need to be well-baked.
+ * @param table         The symbol table
+ * @param outRecord     The output record, should be a pointer to valid memory of SymbolRecord
+ * @param memberTypes   An array of member types, length must match the memberCount
+ * @param memberNames   An array of member names, length must match the memberCount, all content will be duplicated, memberName cannot be NULL
+ * @param memberMetas   An array of member metadata
+ *                      <code>NULL</code> if the member is not a struct or an array
+ *                      baked SymbolInfo_Struct_t if the member is a struct
+ *                      baked SymbolInfo_Array_t if the member is an array
+ * @param memberCount   The count of the members
+ * @return
+ */
+SymbolTable_Error
+SymbolTable_createStruct(SymbolTable_t table, SymbolRecord *outRecord,
+                         Symbol_Value_Type *memberTypes, char **memberNames, void **memberMetas, int memberCount);
+
+/**
  * Creates a blank variable record with valid variable info, will auto bake all the metadata in the given symbol table.
  *
  * @param table The symbol table.
- * @param outRecord The output record.
+ * @param outRecord The output record, should be a pointer to valid memory of SymbolRecord
  * @param type  The type of the variable.
  * @param meta  The meta data of the variable.
  *              <code>NULL</code> if the variable is not a struct or an array.
@@ -183,12 +269,12 @@ int SymbolTable_insertRecord(SymbolTable_t table, char* name, SymbolRecord_t rec
  * @see SymbolInfo_Array_create
  */
 SymbolTable_Error
-SymbolTable_createVariable(SymbolTable_t table, SymbolRecord *outRecord, Symbol_Value_Type type, void *meta);
+SymbolTable_createVariableByRawMeta(SymbolTable_t table, SymbolRecord *outRecord, Symbol_Value_Type type, void *meta);
 
 /**
  * Creates a blank function record with valid function info, will auto bake all the metadata in the given symbol table.
  * @param table             the symbol table
- * @param outRecord         the output record
+ * @param outRecord         the output record, should be a pointer to valid memory of SymbolRecord
  * @param returnType        the return type of the function
  * @param returnTypeMeta    the meta data of the return type
  *                          <code>NULL</code> if the parameter is not a struct or an array
@@ -205,13 +291,13 @@ SymbolTable_createVariable(SymbolTable_t table, SymbolRecord *outRecord, Symbol_
  * @see SymbolInfo_Array_create
  */
 SymbolTable_Error
-SymbolTable_createFunction(SymbolTable_t table, SymbolRecord *outRecord, Symbol_Value_Type returnType,
-                           void *returnTypeMeta, Symbol_Value_Type *parameterTypes,
-                           char **parameterNames, void **parametersMeta, int parameterCount);
+SymbolTable_createFunctionByRawMeta(SymbolTable_t table, SymbolRecord *outRecord, Symbol_Value_Type returnType,
+                                    void *returnTypeMeta, Symbol_Value_Type *parameterTypes,
+                                    char **parameterNames, void **parametersMeta, int parameterCount);
 
 /** Create a blank struct record with valid struct info, will auto bake all the metadata in the given symbol table.
  * @param table The symbol table.
- * @param outRecord The output record.
+ * @param outRecord The output record, should be a pointer to valid memory of SymbolRecord
  * @param memberTypes An array of member types, length must match the memberCount.
  * @param memberNames An array of member names, length must match the memberCount, all content will be duplicated, memberName cannot be NULL.
  * @param memberMetas An array of member metadata.
@@ -223,8 +309,14 @@ SymbolTable_createFunction(SymbolTable_t table, SymbolRecord *outRecord, Symbol_
  * @see SymbolInfo_Array_create
  */
 SymbolTable_Error
-SymbolTable_createStruct(SymbolTable_t table, SymbolRecord *outRecord, Symbol_Value_Type *memberTypes,
-                         char **memberNames, void **memberMetas, int memberCount);
+SymbolTable_createStructByRawMeta(SymbolTable_t table, SymbolRecord *outRecord, Symbol_Value_Type *memberTypes,
+                                  char **memberNames, void **memberMetas, int memberCount);
+
+SymbolTable_Error SymbolTable_createVariableByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info);
+
+SymbolTable_Error SymbolTable_createFunctionByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info);
+
+SymbolTable_Error SymbolTable_createStructByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info);
 
 ////////////////////////////////////////
 /// SymbolInfo
@@ -255,6 +347,13 @@ SymbolInfo_Variable_Raw SymbolInfo_Variable_create(Symbol_Value_Type type, void*
  */
 SymbolTable_Error SymbolInfo_Variable_bake(SymbolTable_t table, SymbolInfo_Variable_Raw rawInfo);
 /**
+ * Create a new baked SymbolInfo_Variable with baked meta info.
+ * @param type The type of the variable.
+ * @param meta The baked meta data of the variable.
+ * @return The baked SymbolInfo_Variable.
+ */
+SymbolInfo_Variable_t SymbolInfo_Variable_createBaked(Symbol_Value_Type type, SymbolInfo_t meta);
+/**
  * Destroy the raw SymbolInfo_Variable.
  * @param info The raw SymbolInfo_Variable.
  */
@@ -267,9 +366,9 @@ void SymbolInfo_Variable_destroy(SymbolInfo_Variable_t info);
 
         typedef struct {
             Symbol_Value_Type elementType;
+            SymbolInfo_t elementStructInfo;
             int dimensionCount;
             int dimensions[16];
-            SymbolInfo_t elementStructInfo;
         } SymbolInfo_Array;
         typedef SymbolInfo_Array* SymbolInfo_Array_t;
         typedef SymbolInfo_Array* SymbolInfo_Array_Raw;
@@ -282,6 +381,15 @@ void SymbolInfo_Variable_destroy(SymbolInfo_Variable_t info);
          * @return The raw SymbolInfo_Array.
          */
         SymbolInfo_Array_Raw SymbolInfo_Array_create(Symbol_Value_Type elementType, int dimensions[], int dimensionCount, char structName[]);
+        /**
+         * Create a new baked SymbolInfo_Array with baked element struct info.
+         * @param elementType The type of the elements in the array.
+         * @param elementStructInfo The struct info of the elements in the array.
+         * @param dimensions The dimensions and its length of the array, -1 if it is not fixed.
+         * @param dimensionCount The count of the dimensions.
+         * @return The raw SymbolInfo_Array.
+         */
+        SymbolInfo_Array_t SymbolInfo_Array_createBaked(Symbol_Value_Type elementType, SymbolInfo_t elementStructInfo, int dimensions[], int dimensionCount);
         /**
          * Bake the SymbolInfo_Array, will try to find the struct info in the symbol table.
          * @param table The symbol table.
@@ -301,22 +409,24 @@ void SymbolInfo_Variable_destroy(SymbolInfo_Variable_t info);
         void SymbolInfo_Array_destroy(SymbolInfo_Array_t info);
 
 typedef struct {
+    Symbol_Value_Type returnType;
+    SymbolInfo_t returnTypeMeta;
 #ifdef SYMBOL_TABLE_FUNCTION_NAME
     char* functionName;
 #endif
-    Symbol_Value_Type returnType;
-    SymbolInfo_t returnTypeMeta;
     int parameterCount;
     SymbolInfo_t* parameters;
+    int offset;
+    int firstDeclaredLine;
 } SymbolInfo_Function;
 typedef SymbolInfo_Function* SymbolInfo_Function_t;
 typedef SymbolInfo_Function* SymbolInfo_Function_Raw;
-
 /**
  * Create a new SymbolInfo_Function.
  * @param returnType The return type of the function, SVT_Void for void.
  * @param returnTypeMeta The meta data of the return type.
  * @param parameterTypes An array of parameter types, length must match the parameterCount.
+ * @param parameterNames An array of parameter names, length must match the parameterCount, all content will be duplicated.
  * @param parametersMeta An array of parameter metadata, length must match the parameterCount.
  *                       <code>NULL</code> if the parameter is not a struct or an array.
  *                       <code>char[]</code> if the parameter is a struct, represent the name of the struct without the nextScopeID prefix.
@@ -335,7 +445,6 @@ SymbolInfo_Function_create(Symbol_Value_Type returnType, void *returnTypeMeta, S
  * @return 0 if success, -1 if failed.
  */
 SymbolTable_Error SymbolInfo_Function_bakeReturnType(SymbolTable_t table, SymbolInfo_Function_Raw rawInfo);
-
 /**
  * Bake the SymbolInfo_Function's parameters, will try to find the struct info or bake array info in the symbol table.
  * @param table The symbol table.
@@ -344,6 +453,22 @@ SymbolTable_Error SymbolInfo_Function_bakeReturnType(SymbolTable_t table, Symbol
  * @return 0 if success, -1 if failed.
  */
 SymbolTable_Error SymbolInfo_Function_bakeParameters(SymbolTable_t table, SymbolInfo_Function_Raw rawInfo, int* errorParameterIndex);
+/**
+ * Create a new baked SymbolInfo_Function with baked meta info.
+ * @param returnType     The return type of the function, SVT_Void for void.
+ * @param returnTypeMeta The baked meta data of the return type.
+ * @param parameterTypes An array of parameter types, length must match the parameterCount.
+ * @param parameterNames An array of parameter names, length must match the parameterCount, all content will be duplicated.
+ * @param parametersMeta An array of baked parameter metadata, length must match the parameterCount.
+ *                       <code>NULL</code> if the parameter is not a struct or an array.
+ *                       baked SymbolInfo_Struct_t if the parameter is a struct.
+ *                       baked SymbolInfo_Array_t if the parameter is an array.
+ * @param parameterCount
+ * @return
+ */
+SymbolInfo_Function_t
+SymbolInfo_Function_createBaked(Symbol_Value_Type returnType, SymbolInfo_t returnTypeMeta, Symbol_Value_Type parameterTypes[],
+                                char *parameterNames[], void *parametersMeta[], int parameterCount);
 
 /**
  * Destroy the raw SymbolInfo_Function.
@@ -358,6 +483,9 @@ void SymbolInfo_Function_destroyRaw(SymbolInfo_Function_Raw info, int retvalBake
  */
 void SymbolInfo_Function_destroy(SymbolInfo_Function_t info);
 
+int SymbolInfo_Function_hasParameterName(SymbolInfo_Function_t functionInfo, char* parameterName);
+
+void SymbolInfo_Function_addParameter(SymbolInfo_Function_t functionInfo, SymbolInfo_t parameter);
 #ifdef SYMBOL_TABLE_FUNCTION_NAME
 /**
  * Get the name of the function.
@@ -401,6 +529,17 @@ void SymbolInfo_Function_setName(SymbolInfo_Function_t info, char* name);
          */
         SymbolTable_Error SymbolInfo_Parameter_bake(SymbolTable_t table, SymbolInfo_Parameter_Raw rawInfo);
         /**
+         * Create a new baked SymbolInfo_Parameter with baked meta info.
+         * @param type The type of the parameter.
+         * @param parameterName The name of the parameter, will be duplicated if not NULL.
+         * @param meta The baked meta data of the parameter.
+         *             <code>NULL</code> if the parameter is not a struct or an array.
+         *             baked SymbolInfo_Struct_t if the parameter is a struct.
+         *             baked SymbolInfo_Array_t if the parameter is an array.
+         * @return The baked SymbolInfo_Parameter.
+         */
+        SymbolInfo_Parameter_t SymbolInfo_Parameter_createBaked(Symbol_Value_Type type, char* parameterName, SymbolInfo_t meta);
+        /**
          * Destroy the raw SymbolInfo_Parameter.
          * @param info The raw SymbolInfo_Parameter.
          */
@@ -440,6 +579,19 @@ SymbolInfo_Struct_create(Symbol_Value_Type *memberTypes, char **memberNames, voi
  * @return 0 if success, -1 if failed.
  */
 SymbolTable_Error SymbolInfo_Struct_bake(SymbolTable_t table, SymbolInfo_Struct_Raw rawInfo, int* errorMemberIndex);
+/**
+ * Create a new baked SymbolInfo_Struct with baked meta info.
+ * @param memberTypes   An array of member types, length must match the memberCount.
+ * @param memberNames   An array of member names, length must match the memberCount, all content will be duplicated, memberName cannot be NULL.
+ * @param memberMeta    An array of member metadata.
+ *                      <code>NULL</code> if the member is not a struct or an array.
+ *                      baked SymbolInfo_Struct_t if the member is a struct.
+ *                      baked SymbolInfo_Array_t if the member is an array.
+ * @param memberCount   The count of the members.
+ * @return baked SymbolInfo_Struct_t if success, NULL if failed.
+ */
+SymbolInfo_Struct_t
+SymbolInfo_Struct_createBaked(Symbol_Value_Type *memberTypes, char **memberNames, void **memberMeta, int memberCount);
 /** Destroy the raw SymbolInfo_Struct.
  * @param info The raw SymbolInfo_Struct.
  */
@@ -449,6 +601,15 @@ void SymbolInfo_Struct_destroyRaw(SymbolInfo_Struct_Raw info, int bakedMemberCou
  */
 void SymbolInfo_Struct_destroy(SymbolInfo_Struct_t info);
 
+int SymbolInfo_Struct_checkMemberName(SymbolInfo_Struct_t info, char* memberName);
+
+/**
+ * Insert a member into the struct.
+ * @param info The baked SymbolInfo_Struct.
+ * @param memberInfo The member info.
+ */
+void SymbolInfo_Struct_insertMember(SymbolInfo_Struct_t info, SymbolInfo_t memberInfo);
+
 #ifdef SYMBOL_TABLE_STRUCT_NAME
 /**
  * Get the name of the struct.
@@ -456,7 +617,6 @@ void SymbolInfo_Struct_destroy(SymbolInfo_Struct_t info);
  * @return The name of the struct.
  */
 char* SymbolInfo_Struct_getName(SymbolInfo_Struct_t info);
-
 /**
  * Set the name of the struct.
  * @param info The baked SymbolInfo_Struct.
@@ -491,6 +651,17 @@ void SymbolInfo_Struct_setName(SymbolInfo_Struct_t info, char* name);
          * @return SE_Success if success, failed otherwise.
          */
         SymbolTable_Error SymbolInfo_Member_bake(SymbolTable_t table, SymbolInfo_Member_Raw rawInfo);
+        /**
+         * Create a new baked SymbolInfo_Member with baked meta info.
+         * @param memberType The type of the member.
+         * @param memberName The name of the member, will be duplicated.
+         * @param memberMeta The baked meta data of the member.
+         *                  <code>NULL</code> if the member is not a struct or an array.
+         *                  baked SymbolInfo_Struct_t if the member is a struct.
+         *                  baked SymbolInfo_Array_t if the member is an array.
+         * @return
+         */
+        SymbolInfo_Member_t SymbolInfo_Member_createBaked(Symbol_Value_Type memberType, char* memberName, SymbolInfo_t memberMeta);
         /**
          * Destroy the raw SymbolInfo_Member.
          * @param info The raw SymbolInfo_Member.

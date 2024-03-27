@@ -8,6 +8,8 @@
 #include "string.h"
 #include "Structure/SimpleArray.h"
 #include "CmmParserTypes.h"
+#include "Structure/SemanticInfo.h"
+
 #include "Structure/ParserNodes.h"
 
 SimpleArray_t parserNodes = NULL;
@@ -67,6 +69,10 @@ void freeParserNode(void *nodeToFree) {
     if(node->token == ID || node->token == TYPE)
     {
         free(node->ID);
+    }
+    if(node->semanticInfo != NULL)
+    {
+        SemanticInfo_destroy(node->semanticInfo);
     }
 }
 
@@ -256,4 +262,18 @@ void printParserNode(ParserNode_I nodeIndex, int depth) {
 
 void yyerror(const char *msg) {
 
+}
+
+ParserNode_t getParserNodeChildNode(ParserNode_I index, int childIndex) {
+    return getParserNode(getParserNodeChild(index, childIndex));
+}
+
+ParserNode_I getParserNodeChild(ParserNode_I index, int childIndex) {
+    ParserNodeIndexContainer_t children = getParserNode(index)->children;
+    return ParserNodeIndexContainer_getNodeIndex(children, childIndex);
+}
+
+int getParserNodeChildNum(ParserNode_I index) {
+    ParserNodeIndexContainer_t children = getParserNode(index)->children;
+    return children->num;
 }

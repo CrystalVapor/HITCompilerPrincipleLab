@@ -35,7 +35,7 @@ typedef enum ErrorType_e{
 
     UndefinedVariable,          // Error 1
     UndefinedFunctionCalled,    // Error 2
-    VariableRedefinition,       // Error 3
+    VariableNameRedefinition,       // Error 3
     FunctionRedefinition,       // Error 4
     AssignmentTypeMismatch,     // Error 5
     AssignToRvalue,             // Error 6
@@ -56,12 +56,23 @@ typedef enum ErrorType_e{
     UNDEF_SEMANTIC_ERROR = 149,
 }ErrorType;
 
-// register an error to reporter, content of externalMessage will be malloc copied
-// if there's already an error on the same line, the new one will be ignored
-void reportError(int line, int errorType, char* externalMessage);
+/**
+ * register an error to reporter, content of externalMessage will be malloc copied
+ * if there's already an error on the same line, the new one will be ignored
+ * @param line line number of the error
+ * @param errorType error type
+ * @param externalMessage error message
+ */
+ void reportError(int line, int errorType, char* externalMessage);
 
-// register an error to reporter, content of externalMessage will be malloc copied and formatted
-// if there's already an error on the same line, the new one will be ignored
+/**
+ * register an error to reporter, content of externalMessage will be malloc copied and formatted
+ * if there's already an error on the same line, the new one will be ignored
+ * @param line line number of the error
+ * @param errorType error type
+ * @param format format string
+ * @param ... format arguments
+ */
 void reportErrorFormat(int line, int errorType, const char* format, ...);
 
 // print all errors to the file
