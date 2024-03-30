@@ -13,7 +13,7 @@
 #define IS_SYNTAX_ERROR(errorType) (errorType >= SYNTAX_ERROR_BASE && errorType <= UNDEF_SYNTAX_ERROR)
 #define IS_SEMANTIC_ERROR(errorType) (errorType >= SEMANTIC_ERROR_BASE && errorType <= UNDEF_SEMANTIC_ERROR)
 
-#define ERROR_REPORTER_DEBUG
+//#define ERROR_REPORTER_DEBUG
 
 typedef struct ErrorInfo_s {
     int errorType;
@@ -42,11 +42,15 @@ char semanticErrorTypeNames[][10] = {
         "16",
         "17",
         "18",
+        "19",
+        "20"
 };
 
 SimpleHashTable_t errorTable = NULL;
 
 FILE* errorFile = NULL;
+
+int cmpErrorPriority(int errorType1, int errorType2);
 
 ErrorInfo createErrorInfo(int lineNumber, int errorType, char* externalMessage) {
     ErrorInfo errorInfo;
@@ -99,31 +103,26 @@ printf("DEBUG: Error type %s at line %d: %s\n\n"
 #endif
 
     ErrorInfo_t existedErrorInfo = (ErrorInfo_t)SimpleHashTable_find(errorTable, &line, sizeof(int));
-    if(existedErrorInfo != NULL && existedErrorInfo->errorType <= errorType)
-    {
+    if (existedErrorInfo == NULL || cmpErrorPriority(existedErrorInfo->errorType, errorType) < 0) {
+        ErrorInfo errorInfo = createErrorInfo(line, errorType, externalMessage);
+
 #ifdef ERROR_REPORTER_DEBUG
-        printf("DEBUG: Higher Priority Error already exists at line %d, ignore new error\n\n", line);
+        printf("DEBUG: Error type %s in *ErrorInfo* at line %d: %s\n\n"
+                , getErrorTypeName(errorInfo.errorType)
+                , errorInfo.lineNumber
+                , errorInfo.externalMessage);
 #endif
-        return;
+
+        SimpleHashTable_forceInsert(errorTable, (char *) &line, sizeof(int), &errorInfo, NULL, freeErrorInfo);
+
+#ifdef ERROR_REPORTER_DEBUG
+        printf("DEBUG: Error type %s in *ErrorTable* at line %d: %s\n\n"
+                , getErrorTypeName(((ErrorInfo_t)SimpleHashTable_find(errorTable, &line, sizeof(int)))->errorType)
+                , ((ErrorInfo_t)SimpleHashTable_find(errorTable, &line, sizeof(int)))->lineNumber
+                , ((ErrorInfo_t)SimpleHashTable_find(errorTable, &line, sizeof(int)))->externalMessage);
+#endif
+
     }
-    ErrorInfo errorInfo = createErrorInfo(line, errorType, externalMessage);
-
-#ifdef ERROR_REPORTER_DEBUG
-    printf("DEBUG: Error type %s in *ErrorInfo* at line %d: %s\n\n"
-            , getErrorTypeName(errorInfo.errorType)
-            , errorInfo.lineNumber
-            , errorInfo.externalMessage);
-#endif
-
-    SimpleHashTable_forceInsert(errorTable, (char*)&line, sizeof(int), &errorInfo, NULL, freeErrorInfo);
-
-#ifdef ERROR_REPORTER_DEBUG
-    printf("DEBUG: Error type %s in *ErrorTable* at line %d: %s\n\n"
-            , getErrorTypeName(((ErrorInfo_t)SimpleHashTable_find(errorTable, &line, sizeof(int)))->errorType)
-            , ((ErrorInfo_t)SimpleHashTable_find(errorTable, &line, sizeof(int)))->lineNumber
-            , ((ErrorInfo_t)SimpleHashTable_find(errorTable, &line, sizeof(int)))->externalMessage);
-#endif
-
 }
 
 void reportErrorFormat(int line, int errorType, const char* format, ...)
@@ -156,4 +155,37 @@ void resetErrorReporter() {
 int hasError()
 {
     return errorTable == NULL ? 0 : 1;
+}
+
+
+int cmpErrorPriority(int errorType1, int errorType2) {
+    if (errorType1 == errorType2) {
+        return 0;
+    }
+    if(errorType1<errorType2)
+    {
+        return -cmpErrorPriority(errorType2, errorType1);
+    }
+    if(IS_LEXICAL_ERROR(errorType1))
+    {
+        if(IS_LEXICAL_ERROR(errorType2))
+        {
+            return errorType1 - errorType2;
+        }
+    }
+    if(IS_SYNTAX_ERROR(errorType1))
+    {
+        if(IS_SYNTAX_ERROR(errorType2))
+        {
+            return errorType1 - errorType2;
+        }
+    }
+    if(IS_SEMANTIC_ERROR(errorType1))
+    {
+        if(IS_SEMANTIC_ERROR(errorType2))
+        {
+            return 0;
+        }
+    }
+    return 1;
 }
