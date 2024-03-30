@@ -51,6 +51,11 @@ make Lab2
 
 ## 项目测试环境
 
+IDE: CLion 2023.3.4
+Thanks to JetBrains for providing the Education License!
+
+AI Assistant: GitHub Copilot
+
 - Ubuntu 22.04.2 LTS
 - gcc 11.4.0
 - flex 2.6.4
