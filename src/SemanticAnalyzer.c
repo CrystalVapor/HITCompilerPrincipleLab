@@ -1103,7 +1103,7 @@ int Analyze_Exp(ParserNode_I nodeIndex){
         // Function call without arguments
         SymbolRecord_t record;
         SymbolDefineStatus defineStatus = SymbolTable_lookupRecord(symbolTable, GET_NODE(GET_CHILD(nodeIndex, 0))->ID, &record);
-        if(defineStatus <= SDS_ExternalDefined)
+        if(defineStatus < SDS_ExternalDefined)
         {
             reportErrorFormat(node->lineNum, UndefinedFunctionCalled, "Undefined function \"%s\"", GET_NODE(GET_CHILD(nodeIndex, 0))->ID);
             //make an empty semantic info to let the analysis can continue
