@@ -33,8 +33,7 @@ ParserNode_I newParserNode(int symbol, int lineNum, int childNum, ParserNode_I *
     switch (symbol) {
         case ID:
         case TYPE:
-            node.ID = malloc(strlen(yytext) + 1);
-            strcpy(node.ID, yytext);
+            node.ID = strdup(yytext);
             break;
         case INT:
             node.intVal = stoi(yytext);
@@ -69,10 +68,6 @@ void freeParserNode(void *nodeToFree) {
     if(node->token == ID || node->token == TYPE)
     {
         free(node->ID);
-    }
-    if(node->semanticInfo != NULL)
-    {
-        SemanticInfo_destroy(node->semanticInfo);
     }
 }
 

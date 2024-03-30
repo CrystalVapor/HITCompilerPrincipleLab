@@ -27,8 +27,6 @@ SemanticInfo floatLiteralInfo;
 SymbolTable_t symbolTable;
 SimpleArray_t semanticInfoList;
 
-int currentFunctionHasReturn = 0;
-int currentFunctionIsForwardDeclaration = 0;
 SymbolInfo_Function_t currentFunctionInfo = NULL;
 SimpleArray_t currentStructInfoStack;
 SimpleArray_t currentType;
@@ -97,7 +95,6 @@ void Analyze_pushCurrentFunctionInfo(SymbolInfo_Function_t functionInfo){
 
 void Analyze_popCurrentFunctionInfo(){
     currentFunctionInfo = NULL;
-    currentFunctionHasReturn = 0;
 }
 
 /**
@@ -199,10 +196,11 @@ int* Analyze_getCurrentDimensions(){
 
 /**
  * Helper function to destroy the anonymous struct.
- * @param structInfo
+ * @param structInfoToDestroy
  */
-void Analyze_Helper_DestructorForAnonymousStruct(void* structInfo)
+void Analyze_Helper_DestructorForAnonymousStruct(void* structInfoToDestroy)
 {
+    SymbolInfo_Struct_t structInfo = *((SymbolInfo_Struct_t*)structInfoToDestroy);
     SymbolInfo_Struct_destroy(structInfo);
 }
 
@@ -226,6 +224,10 @@ void Analyze_Helper_logicTwoParameters(ParserNode_I nodeIndex, ParserNode_t node
 // Implementation
 ////////////////////////////////////////
 
+void Analyze_HandleFunctionDefintion(ParserNode_I nodeIndex);
+
+void Analyze_HandleFunctionDeclaration(ParserNode_I nodeIndex);
+
 int semanticAnalyze(ParserNode_I rootNodeIndex) {
     semanticErrors = 0;
     symbolTable = SymbolTable_create();
@@ -241,7 +243,7 @@ int semanticAnalyze(ParserNode_I rootNodeIndex) {
         for(int i = 0; i < functionForwardDeclarationList->num; i++)
         {
             SymbolInfo_Function_t functionInfo = *((SymbolInfo_Function_t*)SimpleArray_at(functionForwardDeclarationList, i));
-            reportErrorFormat(functionInfo->firstDeclaredLine, ImplicitFunctionDeclaration, "Function %s declared but not defined", functionInfo->functionName);
+            reportErrorFormat(functionInfo->firstDeclaredLine, UndefinedExternalFunction, "Function \"%s\" declared but not defined", functionInfo->functionName);
         }
     }
     return semanticErrors;
@@ -278,129 +280,154 @@ int Analyze_ExtDef(ParserNode_I nodeIndex){
         Analyze_Specifier(GET_CHILD(nodeIndex, 0));
         Analyze_ExtDecList(GET_CHILD(nodeIndex, 1));
     }
-    else if(isChildrenMatchRule(nodeIndex, 3, SPECIFIER, SEMI)){
+    else if(isChildrenMatchRule(nodeIndex, 2, SPECIFIER, SEMI)){
         Analyze_Specifier(GET_CHILD(nodeIndex, 0));
     }
     else if(isChildrenMatchRule(nodeIndex, 3, SPECIFIER, FUN_DEC, COMP_STM)){
-        Analyze_Specifier(GET_CHILD(nodeIndex, 0));
-        Symbol_Value_Type returnType = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueType;
-        SymbolInfo_t returnMeta = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo;
+        Analyze_HandleFunctionDefintion(nodeIndex);
 
-        currentFunctionIsForwardDeclaration = 0;
-        Analyze_FunDec(GET_CHILD(nodeIndex, 1));
-        SymbolInfo_Function_t functionInfo = Analyze_getCurrentFunctionInfo();
-        functionInfo->returnType = returnType;
-        functionInfo->returnTypeMeta = returnMeta;
-
-        // check if the function is defined & forward declaration check
-        // use var name to store the function name
-        char* functionName = Analyze_getCurrentVarName();
-        SymbolRecord_t record;
-        SymbolDefineStatus defineStatus = SymbolTable_lookupRecord(symbolTable, functionName, &record);
-        int currentFunctionIsValid = 1;
-        if(defineStatus == SDS_Defined)
-        {
-            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, FunctionRedefinition, "Function %s redefined", functionName);
-            currentFunctionIsValid = 0;
-        }
-        else if(defineStatus == SDS_Declared){
-            if(!SymbolInfo_Function_isReturnTypeMatched(record->info, functionInfo)){
-                reportErrorFormat(GET_NODE(nodeIndex)->lineNum, ImplicitFunctionDeclaration, "Function %s redefined with different return type", functionName);
-                currentFunctionIsValid = 0;
-            }
-            else if(!SymbolInfo_Function_isParameterListMatched(record->info, functionInfo)){
-                reportErrorFormat(GET_NODE(nodeIndex)->lineNum, ImplicitFunctionDeclaration, "Function %s redefined with different parameter list", functionName);
-                currentFunctionIsValid = 0;
-            }
-            else{
-                SymbolInfo_Function_t existedFuncInfo = record->info;
-                existedFuncInfo->offset = 1;
-                for(int i = 0; i < functionForwardDeclarationList->num; i++)
-                {
-                    SymbolInfo_Function_t forwardFunction = *((SymbolInfo_Function_t*)SimpleArray_at(functionForwardDeclarationList, i));
-                    // same memory address, remove the forward declaration
-                    if(existedFuncInfo == forwardFunction)
-                    {
-                        SimpleArray_removeElement(functionForwardDeclarationList, i, NULL);
-                        break;
-                    }
-                }
-                // destroy the current function info and replace it with the existed one
-                SymbolInfo_Function_destroy(functionInfo);
-                functionInfo = existedFuncInfo;
-            }
-        }
-        else{
-            functionInfo->firstDeclaredLine = GET_NODE(nodeIndex)->lineNum;
-            SymbolRecord outRecord;
-            SymbolTable_createFunctionByInfo(symbolTable, &outRecord, functionInfo);
-            SymbolTable_insertRecord(symbolTable, functionName, &outRecord);
-        }
-
-        //before we enter the function, pop the current variable name
-        Analyze_popCurrentVarName();
-
-        Analyze_pushCurrentFunctionInfo(functionInfo);
-        SymbolTable_enterScope(symbolTable);
-
-        for(int i = 0; i < functionInfo->parameterCount; i++){
-            SymbolInfo_Parameter_t parameter = functionInfo->parameters[i];
-            SymbolRecord parameterRecord;
-            SymbolTable_createVariable(symbolTable, &parameterRecord, parameter->parameterType, parameter->parameterMeta);
-            SymbolTable_insertRecord(symbolTable, parameter->parameterName, &parameterRecord);
-        }
-
-        Analyze_CompSt(GET_CHILD(nodeIndex, 2));
-        SymbolTable_leaveScope(symbolTable);
-        Analyze_popCurrentFunctionInfo();
-        if(!currentFunctionIsValid)
-        {
-            SymbolInfo_Function_destroy(functionInfo);
-        }
     }
     else if(isChildrenMatchRule(nodeIndex, 3, SPECIFIER, FUN_DEC, SEMI)){
-        Analyze_Specifier(GET_CHILD(nodeIndex, 0));
-        Symbol_Value_Type returnType = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueType;
-        SymbolInfo_t returnMeta = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo;
 
-        currentFunctionIsForwardDeclaration = 1;
-        Analyze_FunDec(GET_CHILD(nodeIndex, 1));
-        SymbolInfo_Function_t functionInfo = Analyze_getCurrentFunctionInfo();
-        Analyze_popCurrentFunctionInfo();
-        functionInfo->returnType = returnType;
-        functionInfo->returnTypeMeta = returnMeta;
-
-        char* functionName = Analyze_getCurrentVarName();
-        SymbolRecord_t record;
-        SymbolDefineStatus defineStatus = SymbolTable_lookupRecord(symbolTable, functionName, &record);
-        if(defineStatus >= SDS_Declared)
-        {
-            if(!SymbolInfo_Function_isReturnTypeMatched(record->info, functionInfo)){
-                reportErrorFormat(GET_NODE(nodeIndex)->lineNum, ImplicitFunctionDeclaration, "Function %s redefined with different return type", functionName);
-                SymbolInfo_Function_destroy(functionInfo);
-            }
-            else if(!SymbolInfo_Function_isParameterListMatched(record->info, functionInfo)){
-                reportErrorFormat(GET_NODE(nodeIndex)->lineNum, ImplicitFunctionDeclaration, "Function %s redefined with different parameter list", functionName);
-                SymbolInfo_Function_destroy(functionInfo);
-            }
-            else{
-                SymbolRecord outRecord;
-                SymbolTable_createFunctionByInfo(symbolTable, &outRecord, functionInfo);
-                SymbolTable_insertRecord(symbolTable, functionName, &outRecord);
-            }
-        }
-        else{
-            functionInfo->firstDeclaredLine = GET_NODE(nodeIndex)->lineNum;
-            SimpleArray_pushBack(functionForwardDeclarationList, &functionInfo);
-            SymbolRecord outRecord;
-            SymbolTable_createFunctionByInfo(symbolTable, &outRecord, functionInfo);
-            SymbolTable_insertRecord(symbolTable, functionName, &outRecord);
-        }
-
-        currentFunctionIsForwardDeclaration = 0;
+        Analyze_HandleFunctionDeclaration(nodeIndex);
     }
     return 0;
 }
+
+void Analyze_HandleFunctionDefintion(ParserNode_I nodeIndex) {
+    Analyze_Specifier(GET_CHILD(nodeIndex, 0));
+    Symbol_Value_Type returnType = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueType;
+    SymbolInfo_t returnMeta = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo;
+
+    Analyze_FunDec(GET_CHILD(nodeIndex, 1));
+    SymbolInfo_Function_t functionInfo = Analyze_getCurrentFunctionInfo();
+    functionInfo->returnType = returnType;
+    functionInfo->returnTypeMeta = returnMeta;
+
+    // Set to a valid offset to tell the function is defined
+    functionInfo->offset = 1;
+
+    // check if the function is defined & forward declaration check
+    // use var name to store the function name
+
+    char* functionName = Analyze_getCurrentVarName();
+    SymbolRecord_t record;
+    SymbolDefineStatus defineStatus = SymbolTable_lookupRecord(symbolTable, functionName, &record);
+    // to tell us if we should destroy the current function info
+    int currentFunctionValid = 1;
+    if(defineStatus == SDS_Defined)
+    {
+        reportErrorFormat(GET_NODE(nodeIndex)->lineNum, FunctionRedefinition, "Function \"%s\" redefined", functionName);
+        currentFunctionValid = 0;
+    }
+    else if(defineStatus == SDS_Declared){
+        if(!SymbolInfo_Function_isReturnTypeMatched(record->info, functionInfo)){
+            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, ImplicitFunctionDeclaration, "Function \"%s\" redefined with different return type", functionName);
+            currentFunctionValid = 0;
+        }
+        else if(!SymbolInfo_Function_isParameterListMatched(record->info, functionInfo)){
+            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, ImplicitFunctionDeclaration, "Function \"%s\" redefined with different parameter list", functionName);
+            currentFunctionValid = 0;
+        }
+        else{
+            SymbolInfo_Function_t existedFuncInfo = record->info;
+            existedFuncInfo->offset = 1;
+            // remove the undefined forward declaration
+            for(int i = 0; i < functionForwardDeclarationList->num; i++)
+            {
+                SymbolInfo_Function_t forwardFunction = *((SymbolInfo_Function_t*)SimpleArray_at(functionForwardDeclarationList, i));
+                // same memory address, remove the forward declaration
+                if(existedFuncInfo == forwardFunction)
+                {
+                    SimpleArray_removeElement(functionForwardDeclarationList, i, NULL);
+                    break;
+                }
+            }
+            // destroy the current function info and replace it with the existed one
+            SymbolInfo_Function_destroy(functionInfo);
+            functionInfo = existedFuncInfo;
+        }
+    }
+    else{
+        functionInfo->firstDeclaredLine = GET_NODE(nodeIndex)->lineNum;
+        functionInfo->offset = 1;
+        SymbolRecord outRecord;
+        SymbolTable_createFunctionByInfo(symbolTable, &outRecord, functionInfo);
+        SymbolTable_insertRecord(symbolTable, functionName, &outRecord);
+    }
+
+    //before we enter the function, pop the current variable name(function name)
+    Analyze_popCurrentVarName();
+
+        Analyze_pushCurrentFunctionInfo(functionInfo);
+            SymbolTable_enterScope(symbolTable);
+
+                for(int i = 0; i < functionInfo->parameterCount; i++){
+                    SymbolInfo_Parameter_t parameter = functionInfo->parameters[i];
+                    SymbolRecord parameterRecord;
+                    SymbolTable_createVariable(symbolTable, &parameterRecord, parameter->parameterType, parameter->parameterMeta);
+                    SymbolTable_insertRecord(symbolTable, parameter->parameterName, &parameterRecord);
+                }
+
+                // truly analyze CompSt with current function info
+
+                Analyze_CompSt(GET_CHILD(nodeIndex, 2));
+
+                // End of the function
+
+            SymbolTable_leaveScope(symbolTable);
+        Analyze_popCurrentFunctionInfo();
+
+    // this will be set to 0 if the function's return type is not matched
+    if(!currentFunctionValid)
+    {
+        SymbolInfo_Function_destroy(functionInfo);
+    }
+}
+
+void Analyze_HandleFunctionDeclaration(ParserNode_I nodeIndex) {
+    Analyze_Specifier(GET_CHILD(nodeIndex, 0));
+    Symbol_Value_Type returnType = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueType;
+    SymbolInfo_t returnMeta = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo;
+
+    Analyze_FunDec(GET_CHILD(nodeIndex, 1));
+    SymbolInfo_Function_t functionInfo = Analyze_getCurrentFunctionInfo();
+    Analyze_popCurrentFunctionInfo();
+    functionInfo->returnType = returnType;
+    functionInfo->returnTypeMeta = returnMeta;
+
+    // set to INVALID_OFFSET to tell the function is not defined
+    functionInfo->offset = INVALID_OFFSET;
+
+    char* functionName = Analyze_getCurrentVarName();
+    SymbolRecord_t record;
+    SymbolDefineStatus defineStatus = SymbolTable_lookupRecord(symbolTable, functionName, &record);
+    if(defineStatus >= SDS_Declared)
+    {
+        if(!SymbolInfo_Function_isReturnTypeMatched(record->info, functionInfo)){
+            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, ImplicitFunctionDeclaration, "Function \"%s\" redefined with different return type", functionName);
+            SymbolInfo_Function_destroy(functionInfo);
+        }
+        else if(!SymbolInfo_Function_isParameterListMatched(record->info, functionInfo)){
+            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, ImplicitFunctionDeclaration, "Function \"%s\" redefined with different parameter list", functionName);
+            SymbolInfo_Function_destroy(functionInfo);
+        }
+        else{
+            SymbolRecord outRecord;
+            SymbolTable_createFunctionByInfo(symbolTable, &outRecord, functionInfo);
+            SymbolTable_insertRecord(symbolTable, functionName, &outRecord);
+        }
+    }
+    else{
+        functionInfo->firstDeclaredLine = GET_NODE(nodeIndex)->lineNum;
+        SimpleArray_pushBack(functionForwardDeclarationList, &functionInfo);
+        SymbolRecord outRecord;
+        SymbolTable_createFunctionByInfo(symbolTable, &outRecord, functionInfo);
+        SymbolTable_insertRecord(symbolTable, functionName, &outRecord);
+    }
+
+}
+
 int Analyze_ExtDecList(ParserNode_I nodeIndex){
     if(isChildrenMatchRule(nodeIndex, 1, VAR_DEC)){
         Analyze_VarDec(GET_CHILD(nodeIndex, 0));
@@ -445,44 +472,43 @@ int Analyze_Specifier(ParserNode_I nodeIndex){
 }
 int Analyze_StructSpecifier(ParserNode_I nodeIndex){
     if(isChildrenMatchRule(nodeIndex, 2, STRUCT, TAG)){
-        Analyze_OptTag(GET_CHILD(nodeIndex, 1));
+        Analyze_Tag(GET_CHILD(nodeIndex, 1));
         SymbolRecord_t record;
-        SymbolDefineStatus defineStatus = SymbolTable_lookupRecord(symbolTable, GET_NODE(GET_CHILD(nodeIndex, 1))->ID, &record);
+        char* structName = GET_CHILD_NODE(nodeIndex, 1)->ID;
+        SymbolDefineStatus defineStatus = SymbolTable_lookupRecord(symbolTable, structName, &record);
         if(defineStatus == SDS_Undefined){
-            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, UndefinedStruct, "Struct name %s undefined", GET_NODE(GET_CHILD(nodeIndex, 1))->ID);
+            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, UndefinedStruct, "Struct name \"%s\" undefined", structName);
             // to continue the analysis, we will define the struct as an empty struct
             SymbolInfo_Struct_t structInfo = SymbolInfo_Struct_createBaked(NULL, NULL, NULL, 0);
             SimpleArray_pushBack(anonymousStructList, &structInfo);
             GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Struct, structInfo, semanticInfoList);
-            return 0;
         }
-        if(record->type!=ST_Struct){
-            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, ConflictStructDefinition, "Name %s is defined as Function or Variable", GET_NODE(GET_CHILD(nodeIndex, 1))->ID);
+        else if(record->type!=ST_Struct){
+            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, ConflictStructDefinition, "Name \"%s\" is defined as Function or Variable", structName);
             // to continue the analysis, we will define the struct as an empty struct
             SymbolInfo_Struct_t structInfo = SymbolInfo_Struct_createBaked(NULL, NULL, NULL, 0);
             SimpleArray_pushBack(anonymousStructList, &structInfo);
             GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Struct, structInfo, semanticInfoList);
-            return 0;
         }
         else{
             GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Struct, record->info, semanticInfoList);
-            return 0;
         }
     }
     else if(isChildrenMatchRule(nodeIndex, 5, STRUCT, OPT_TAG, LC, DEF_LIST, RC)){
         Analyze_OptTag(GET_CHILD(nodeIndex, 1));
         // Before we try to define the non-anonymous struct, we check if the struct name is already defined
-        int isStructAnonymous = GET_CHILD_NUM(GET_CHILD(nodeIndex, 1)) == 0;
+        char* structName = GET_CHILD_NODE(nodeIndex, 1)->ID;
+        int isStructAnonymous = structName == NULL;
         if(!isStructAnonymous) {
             SymbolRecord_t record;
-            SymbolDefineStatus defineStatus = SymbolTable_lookupRecord(symbolTable, GET_NODE(GET_CHILD(nodeIndex, 1))->ID, &record);
+            SymbolDefineStatus defineStatus = SymbolTable_lookupRecord(symbolTable, structName, &record);
             if(defineStatus == SDS_Defined){
                 // Conflict Name, create an empty anonymous struct to continue the analysis
-                reportErrorFormat(GET_NODE(nodeIndex)->lineNum, ConflictStructDefinition, "Struct name %s redefined", GET_NODE(GET_CHILD(nodeIndex, 1))->ID);
+                reportErrorFormat(GET_NODE(nodeIndex)->lineNum, ConflictStructDefinition, "Struct name \"%s\" redefined", structName);
                 SymbolInfo_Struct_t structInfo = SymbolInfo_Struct_createBaked(NULL, NULL, NULL, 0);
                 SimpleArray_pushBack(anonymousStructList, &structInfo);
                 GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Struct, structInfo, semanticInfoList);
-                return 0;
+                return 1;
             }
         }
         // Create an anonymous struct
@@ -495,7 +521,7 @@ int Analyze_StructSpecifier(ParserNode_I nodeIndex){
         if(!isStructAnonymous) {
             SymbolRecord outRecord;
             SymbolTable_createStructByInfo(symbolTable, &outRecord, structInfo);
-            SymbolTable_insertRecord(symbolTable, GET_NODE(GET_CHILD(nodeIndex, 1))->ID, &outRecord);
+            SymbolTable_insertRecord(symbolTable, structName, &outRecord);
         }
         else{
             // If the struct is anonymous, we will store it in the anonymous struct list so that we can destroy it later
@@ -506,13 +532,18 @@ int Analyze_StructSpecifier(ParserNode_I nodeIndex){
     return 0;
 }
 int Analyze_OptTag(ParserNode_I nodeIndex){
-    // no need to analyze the OPT_TAG
-    // string in ID will be directly used.
+    if(isChildrenMatchRule(nodeIndex, 1, ID)){
+        GET_NODE(nodeIndex)->ID = GET_CHILD_NODE(nodeIndex, 0)->ID;
+    }
+    else if(isChildrenMatchRule(nodeIndex, 0)){
+        GET_NODE(nodeIndex)->ID = NULL;
+    }
     return 0;
 }
 int Analyze_Tag(ParserNode_I nodeIndex){
-    // no need to analyze the TAG
-    // string in ID will be directly used.
+    if(isChildrenMatchRule(nodeIndex, 1, ID)){
+        GET_NODE(nodeIndex)->ID = GET_CHILD_NODE(nodeIndex, 0)->ID;
+    }
     return 0;
 }
 
@@ -532,10 +563,6 @@ int Analyze_FunDec(ParserNode_I nodeIndex){
         char* functionName = GET_NODE(GET_CHILD(nodeIndex, 0))->ID;
         SymbolInfo_Function_t functionInfo = SymbolInfo_Function_createBaked(SVT_Void, NULL, NULL, NULL, NULL, 0);
         // transfer the function name to the above level
-        if(currentFunctionIsForwardDeclaration)
-        {
-            functionInfo->offset = INVALID_OFFSET;
-        }
         Analyze_pushCurrentVarName(functionName);
         Analyze_pushCurrentFunctionInfo(functionInfo);
     }
@@ -582,7 +609,7 @@ int Analyze_ParamDec(ParserNode_I nodeIndex){
         int *dimensions = Analyze_getCurrentDimensions();
         int dimensionCount = Analyze_getCurrentDimensionCount();
         if(SymbolInfo_Function_hasParameterName(functionInfo, varName)){
-            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, VariableNameRedefinition, "parameter %s redefined", varName);
+            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, VariableNameRedefinition, "parameter \"%s\" redefined", varName);
             GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Void, NULL, semanticInfoList);
         }
         else{
@@ -626,19 +653,16 @@ int Analyze_Stmt(ParserNode_I nodeIndex){
         Analyze_Exp(GET_CHILD(nodeIndex, 0));
         // no need to analyze this type of STMT, just check the type of the EXP
     }
-    else if(isChildrenMatchRule(nodeIndex, 2, COMP_STM)){
+    else if(isChildrenMatchRule(nodeIndex, 1, COMP_STM)){
         SymbolTable_enterScope(symbolTable);
         Analyze_CompSt(GET_CHILD(nodeIndex, 0));
         SymbolTable_leaveScope(symbolTable);
     }
-    else if(isChildrenMatchRule(nodeIndex, 5, RETURN, EXP, SEMI)){
+    else if(isChildrenMatchRule(nodeIndex, 3, RETURN, EXP, SEMI)){
         Analyze_Exp(GET_CHILD(nodeIndex, 1));
         SymbolInfo_Function_t funcInfo = Analyze_getCurrentFunctionInfo();
         if(!SemanticInfo_checkReturnType(funcInfo, GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 1)))){
             reportErrorFormat(GET_NODE(nodeIndex)->lineNum, ReturnTypeMismatch, "Return type mismatch");
-        }
-        else{
-            currentFunctionHasReturn = 1;
         }
     }
     else if(isChildrenMatchRule(nodeIndex, 5, IF, LP, EXP, RP, STMT)){
@@ -686,7 +710,7 @@ int Analyze_DefList_Variable(ParserNode_I nodeIndex){
 }
 
 int Analyze_Def_Variable(ParserNode_I nodeIndex){
-    if(isChildrenMatchRule(nodeIndex, 2, SPECIFIER, DEC_LIST, SEMI)){
+    if(isChildrenMatchRule(nodeIndex, 3, SPECIFIER, DEC_LIST, SEMI)){
         Analyze_Specifier(GET_CHILD(nodeIndex, 0));
         Analyze_pushCurrentTypeInfo(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueType,
                                     GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo);
@@ -709,7 +733,7 @@ int Analyze_DecList_Variable(ParserNode_I nodeIndex){
     }
     else if(isChildrenMatchRule(nodeIndex, 3, DEC, COMMA, DEC_LIST)){
         Analyze_Dec_Variable(GET_CHILD(nodeIndex, 0));
-        Analyze_DecList_Variable(GET_CHILD(nodeIndex, 2));
+
         if(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueType != SVT_Void) {
             char* varName = Analyze_getCurrentVarName();
             SymbolRecord record;
@@ -717,6 +741,7 @@ int Analyze_DecList_Variable(ParserNode_I nodeIndex){
             SymbolTable_insertRecord(symbolTable, varName, &record);
         }
         Analyze_popCurrentVarName();
+        Analyze_DecList_Variable(GET_CHILD(nodeIndex, 2));
     }
     return 0;
 }
@@ -735,7 +760,7 @@ int Analyze_Dec_Variable(ParserNode_I nodeIndex){
         SymbolRecord_t record;
         SymbolDefineStatus defineStatus = SymbolTable_lookupRecord(symbolTable, varName, &record);
         if(defineStatus > SDS_ExternalDefined){
-            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, VariableNameRedefinition, "Variable %s redefined", varName);
+            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, VariableNameRedefinition, "Variable \"%s\" redefined", varName);
             GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Void, NULL, semanticInfoList);
         }
         else{
@@ -753,14 +778,15 @@ int Analyze_Dec_Variable(ParserNode_I nodeIndex){
     }
     else if(isChildrenMatchRule(nodeIndex, 3, VAR_DEC, ASSIGNOP, EXP)){
         Analyze_VarDec(GET_CHILD(nodeIndex, 0));
-        Analyze_Exp(GET_CHILD(nodeIndex, 2));
         char* varName = Analyze_getCurrentVarName();
         int *dimensions = Analyze_getCurrentDimensions();
         int dimensionCount = Analyze_getCurrentDimensionCount();
+        Analyze_Exp(GET_CHILD(nodeIndex, 2));
+
         SymbolRecord_t record;
         SymbolDefineStatus defineStatus = SymbolTable_lookupRecord(symbolTable, varName, &record);
         if(defineStatus > SDS_ExternalDefined){
-            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, VariableNameRedefinition, "Variable %s redefined", varName);
+            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, VariableNameRedefinition, "Variable \"%s\" redefined", varName);
             GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Void, NULL, semanticInfoList);
         }
         else{
@@ -823,7 +849,7 @@ int Analyze_DefList_StructMember(ParserNode_I nodeIndex){
 }
 
 int Analyze_Def_StructMember(ParserNode_I nodeIndex){
-    if(isChildrenMatchRule(nodeIndex, 2, SPECIFIER, DEC_LIST, SEMI)){
+    if(isChildrenMatchRule(nodeIndex, 3, SPECIFIER, DEC_LIST, SEMI)){
         Analyze_Specifier(GET_CHILD(nodeIndex, 0));
         Analyze_pushCurrentTypeInfo(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueType,
                                     GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo);
@@ -845,7 +871,7 @@ int Analyze_Dec_StructMember(ParserNode_I nodeIndex){
         int *dimensions = Analyze_getCurrentDimensions();
         int dimensionCount = Analyze_getCurrentDimensionCount();
         if(SymbolInfo_Struct_checkMemberName(ownerStruct, varName)){
-            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, InvalidMemberDefinition, "Struct member %s redefined", varName);
+            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, InvalidMemberDefinition, "Struct member \"%s\" redefined", varName);
             GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Void, NULL, semanticInfoList);
         }
         else{
@@ -870,7 +896,7 @@ int Analyze_Dec_StructMember(ParserNode_I nodeIndex){
         int dimensionCount = Analyze_getCurrentDimensionCount();
         SymbolInfo_Member_t member;
         if(SymbolInfo_Struct_checkMemberName(ownerStruct, varName)){
-            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, InvalidMemberDefinition, "Struct member %s redefined", varName);
+            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, InvalidMemberDefinition, "Struct member \"%s\" redefined", varName);
             GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Void, NULL, semanticInfoList);
         }
         else{
@@ -911,17 +937,24 @@ int Analyze_Exp(ParserNode_I nodeIndex){
 
         if(!GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->isLValue){
             reportError(node->lineNum, AssignToRvalue, "Assign to rvalue");
+            //use the first child's semantic info to let the analysis can continue
+            node->semanticInfo = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0));
         }
         else if(!SemanticInfo_isTypeMatched(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)),
                                        GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 2)))){
             reportErrorFormat(node->lineNum, AssignmentTypeMismatch, "Assignment type mismatch");
+            //use the first child's semantic info to let the analysis can continue
+            node->semanticInfo = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0));
         }
         else if(SemanticInfo_checkValueType(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)),SVT_Array)
                 ||SemanticInfo_checkValueType(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)),SVT_Void)){
             reportErrorFormat(node->lineNum, AssignmentTypeMismatch, "Assignment type mismatch");
+            //use the first child's semantic info to let the analysis can continue
+            node->semanticInfo = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0));
         }
         else {
-            node->semanticInfo = SemanticInfo_makeRvalue(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)), semanticInfoList);
+            // directly use the first child's semantic info to allow continuous assignment
+            node->semanticInfo = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0));
         }
     }
     else if(isChildrenMatchRule(nodeIndex, 3, EXP, AND, EXP)){
@@ -1012,6 +1045,9 @@ int Analyze_Exp(ParserNode_I nodeIndex){
         SemanticInfo_t expInfo = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 1));
         if(!SemanticInfo_checkValueType(expInfo, SVT_Int)){
             reportErrorFormat(node->lineNum, OperatorTypeMismatch, "Operator type mismatch");
+
+            //use the first child's semantic info to let the analysis can continue
+            node->semanticInfo = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0));
         }
         else{
             node->semanticInfo = SemanticInfo_makeRvalue(expInfo, semanticInfoList);
@@ -1039,17 +1075,23 @@ int Analyze_Exp(ParserNode_I nodeIndex){
             // if ARGS is not END, set argsNodeIndex to the next ARGS
             argsNodeIndex = GET_CHILD(argsNodeIndex, 2);
         }while(1);
-        if(defineStatus <= SDS_ExternalDefined)
+        if(defineStatus < SDS_ExternalDefined)
         {
-            reportErrorFormat(node->lineNum, UndefinedFunctionCalled, "Undefined function %s", GET_NODE(GET_CHILD(nodeIndex, 0))->ID);
+            reportErrorFormat(node->lineNum, UndefinedFunctionCalled, "Undefined function \"%s\"", GET_NODE(GET_CHILD(nodeIndex, 0))->ID);
+            //make an empty semantic info to let the analysis can continue
+            node->semanticInfo = SemanticInfo_createRvalue(SVT_Int, NULL, semanticInfoList);
         }
         else if(record->type != ST_Function)
         {
-            reportErrorFormat(node->lineNum, FunctionCalledOnNonFunction, "Function called on non-function %s", GET_NODE(GET_CHILD(nodeIndex, 0))->ID);
+            reportErrorFormat(node->lineNum, FunctionCalledOnNonFunction, "Function called on non-function \"%s\"", GET_NODE(GET_CHILD(nodeIndex, 0))->ID);
+            //make an empty semantic info to let the analysis can continue
+            node->semanticInfo = SemanticInfo_createRvalue(SVT_Int, NULL, semanticInfoList);
         }
         else if(!SemanticInfo_checkParameterList(record->info, argsInfo, argsNum))
         {
-            reportErrorFormat(node->lineNum, ParameterListMismatch, "Parameter list mismatch in function %s", GET_NODE(GET_CHILD(nodeIndex, 0))->ID);
+            reportErrorFormat(node->lineNum, ParameterListMismatch, "Parameter list mismatch in function \"%s\"", GET_NODE(GET_CHILD(nodeIndex, 0))->ID);
+            //make an empty semantic info to let the analysis can continue
+            node->semanticInfo = SemanticInfo_createRvalue(SVT_Int, NULL, semanticInfoList);
         }
         else
         {
@@ -1063,15 +1105,21 @@ int Analyze_Exp(ParserNode_I nodeIndex){
         SymbolDefineStatus defineStatus = SymbolTable_lookupRecord(symbolTable, GET_NODE(GET_CHILD(nodeIndex, 0))->ID, &record);
         if(defineStatus <= SDS_ExternalDefined)
         {
-            reportErrorFormat(node->lineNum, UndefinedFunctionCalled, "Undefined function %s", GET_NODE(GET_CHILD(nodeIndex, 0))->ID);
+            reportErrorFormat(node->lineNum, UndefinedFunctionCalled, "Undefined function \"%s\"", GET_NODE(GET_CHILD(nodeIndex, 0))->ID);
+            //make an empty semantic info to let the analysis can continue
+            node->semanticInfo = SemanticInfo_createRvalue(SVT_Int, NULL, semanticInfoList);
         }
         else if(record->type != ST_Function)
         {
-            reportErrorFormat(node->lineNum, FunctionCalledOnNonFunction, "Function called on non-function %s", GET_NODE(GET_CHILD(nodeIndex, 0))->ID);
+            reportErrorFormat(node->lineNum, FunctionCalledOnNonFunction, "Function called on non-function \"%s\"", GET_NODE(GET_CHILD(nodeIndex, 0))->ID);
+            //make an empty semantic info to let the analysis can continue
+            node->semanticInfo = SemanticInfo_createRvalue(SVT_Int, NULL, semanticInfoList);
         }
         else if(!SemanticInfo_checkParameterList(record->info, NULL, 0))
         {
-            reportErrorFormat(node->lineNum, ParameterListMismatch, "Parameter list mismatch in function %s", GET_NODE(GET_CHILD(nodeIndex, 0))->ID);
+            reportErrorFormat(node->lineNum, ParameterListMismatch, "Parameter list mismatch in function \"%s\"", GET_NODE(GET_CHILD(nodeIndex, 0))->ID);
+            //make an empty semantic info to let the analysis can continue
+            node->semanticInfo = SemanticInfo_createRvalue(SVT_Int, NULL, semanticInfoList);
         }
         else
         {
@@ -1079,16 +1127,20 @@ int Analyze_Exp(ParserNode_I nodeIndex){
             node->semanticInfo = SemanticInfo_createRvalue(functionInfo->returnType, functionInfo->returnTypeMeta, semanticInfoList);
         }
     }
-    else if(isChildrenMatchRule(nodeIndex, 4, EXP, LB, EXP, LB)){
+    else if(isChildrenMatchRule(nodeIndex, 4, EXP, LB, EXP, RB)){
         // Array access
         Analyze_Exp(GET_CHILD(nodeIndex, 0));
         Analyze_Exp(GET_CHILD(nodeIndex, 2));
 
         if(!SemanticInfo_checkValueType(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)), SVT_Array)){
             reportErrorFormat(node->lineNum, ArrayAccessOnNonArray, "Array access on non-array");
+            //make an empty semantic info to let the analysis can continue
+            node->semanticInfo = SemanticInfo_createLvalue(SVT_Int, NULL, INVALID_SCOPE, semanticInfoList);
         }
         else if(!SemanticInfo_checkValueType(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 2)), SVT_Int)){
             reportErrorFormat(node->lineNum, ArrayIndexTypeMismatch, "Array index type mismatch");
+            //make an empty semantic info to let the analysis can continue
+            node->semanticInfo = SemanticInfo_createLvalue(SVT_Int, NULL, INVALID_SCOPE, semanticInfoList);
         }
         else{
             SymbolInfo_Array_t arrayInfo = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo;
@@ -1101,13 +1153,17 @@ int Analyze_Exp(ParserNode_I nodeIndex){
 
         if(!SemanticInfo_checkValueType(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)), SVT_Struct)){
             reportErrorFormat(node->lineNum, MemberAccessOnNonStruct, "Member access on non-struct");
+            //make an empty semantic info to let the analysis can continue
+            node->semanticInfo = SemanticInfo_createLvalue(SVT_Int, NULL, INVALID_SCOPE, semanticInfoList);
         }
         else{
             SymbolInfo_Member_t member = SemanticInfo_getMemberInfo(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)),
                                                                     GET_NODE(GET_CHILD(nodeIndex, 2))->ID);
             if(member == NULL) {
-                reportErrorFormat(node->lineNum, UndefinedStructMember, "Undefined struct member %s",
+                reportErrorFormat(node->lineNum, UndefinedStructMember, "Undefined struct member \"%s\"",
                                   GET_NODE(GET_CHILD(nodeIndex, 2))->ID);
+                //make an empty semantic info to let the analysis can continue
+                node->semanticInfo = SemanticInfo_createLvalue(SVT_Int, NULL, INVALID_SCOPE, semanticInfoList);
             }
             else{
                 node->semanticInfo = SemanticInfo_createLvalue(member->memberType, member->memberMeta, GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->scope, semanticInfoList);
@@ -1118,19 +1174,22 @@ int Analyze_Exp(ParserNode_I nodeIndex){
     {
         // Variable
         SymbolRecord_t record;
-        SymbolDefineStatus defineStatus = SymbolTable_lookupRecord(symbolTable, GET_NODE(nodeIndex)->ID, &record);
+        SymbolDefineStatus defineStatus = SymbolTable_lookupRecord(symbolTable, GET_CHILD_NODE(nodeIndex, 0)->ID, &record);
         if(defineStatus <= SDS_ExternalDefined){
             // Error: Undefined variable, we assume it as an anonymous int variable
             //        which is defined in scope -1 (impossible to be found)
-            reportErrorFormat(node->lineNum, UndefinedVariable, "Undefined variable %s", GET_NODE(nodeIndex)->ID);
+            reportErrorFormat(node->lineNum, UndefinedVariable, "Undefined variable \"%s\"", GET_CHILD_NODE(nodeIndex, 0)->ID);
+            //make an empty semantic info to let the analysis can continue
             node->semanticInfo = SemanticInfo_createLvalue(SVT_Int ,NULL, INVALID_SCOPE, semanticInfoList);
         }
         else if(record->type != ST_Variable){
-            reportErrorFormat(node->lineNum, VariableNameRedefinition, "Name %s can not be a Variable", GET_NODE(nodeIndex)->ID);
+            reportErrorFormat(node->lineNum, VariableNameRedefinition, "Name  \"%s\" is defined and can not be a Variable", GET_CHILD_NODE(nodeIndex, 0)->ID);
+            //make an empty semantic info to let the analysis can continue
             node->semanticInfo = SemanticInfo_createLvalue(SVT_Int ,NULL, INVALID_SCOPE, semanticInfoList);
         }
         else{
             SymbolInfo_Variable_t variableInfo = (SymbolInfo_Variable_t)record->info;
+            //make an empty semantic info to let the analysis can continue
             node->semanticInfo = SemanticInfo_createLvalue(variableInfo->type, variableInfo->meta, record->scope, semanticInfoList);
         }
 
@@ -1170,9 +1229,13 @@ void Analyze_Helper_logicTwoParameters(ParserNode_I nodeIndex, ParserNode_t node
     if(!SemanticInfo_isTypeMatched(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)),
                                    GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 2)))){
         reportErrorFormat(node->lineNum, OperatorTypeMismatch, "Operator type mismatch");
+        //make an RValue from the first child's semantic info to let the analysis can continue
+        node->semanticInfo = SemanticInfo_makeRvalue(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)), semanticInfoList);
     }
     else if(!SemanticInfo_checkValueType(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)),SVT_Int)){
         reportErrorFormat(node->lineNum, OperatorTypeMismatch, "Operator type mismatch");
+        //make an RValue from the first child's semantic info to let the analysis can continue
+        node->semanticInfo = SemanticInfo_makeRvalue(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)), semanticInfoList);
     }
     else {
         node->semanticInfo = SemanticInfo_makeRvalue(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)), semanticInfoList);
@@ -1183,9 +1246,13 @@ void Analyze_Helper_operatorTwoParameters(ParserNode_I nodeIndex, ParserNode_t n
     if(!SemanticInfo_isTypeMatched(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)),
                                    GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 2)))){
         reportErrorFormat(node->lineNum, OperatorTypeMismatch, "Operator type mismatch");
+        //make an RValue from the first child's semantic info to let the analysis can continue
+        node->semanticInfo = SemanticInfo_makeRvalue(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)), semanticInfoList);
     }else if(!SemanticInfo_checkValueType(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)),SVT_Int)
              ||!SemanticInfo_checkValueType(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)),SVT_Float)){
         reportErrorFormat(node->lineNum, OperatorTypeMismatch, "Operator type mismatch");
+        //make an RValue from the first child's semantic info to let the analysis can continue
+        node->semanticInfo = SemanticInfo_makeRvalue(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)), semanticInfoList);
     }
     else {
         node->semanticInfo = SemanticInfo_makeRvalue(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)), semanticInfoList);

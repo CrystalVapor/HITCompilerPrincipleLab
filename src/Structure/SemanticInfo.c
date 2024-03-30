@@ -15,9 +15,9 @@ SemanticInfo_t SemanticInfo_createLvalue(Symbol_Value_Type valueType, SymbolInfo
     SemanticInfo_t semanticInfo = (SemanticInfo_t)malloc(sizeof(SemanticInfo));
     semanticInfo->isLValue = 1;
     semanticInfo->scope = scope;
-    semanticInfo->valueType = SVT_Void;
+    semanticInfo->valueType = valueType;
     semanticInfo->valueInfo = valueInfo;
-    SimpleArray_pushBack(semanticInfoList, semanticInfo);
+    SimpleArray_pushBack(semanticInfoList, &semanticInfo);
     return semanticInfo;
 }
 
@@ -27,7 +27,7 @@ SemanticInfo_t SemanticInfo_createRvalue(Symbol_Value_Type valueType, SymbolInfo
     semanticInfo->scope = INVALID_SCOPE;
     semanticInfo->valueType = valueType;
     semanticInfo->valueInfo = valueInfo;
-    SimpleArray_pushBack(semanticInfoList, semanticInfo);
+    SimpleArray_pushBack(semanticInfoList, &semanticInfo);
     return semanticInfo;
 }
 

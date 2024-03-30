@@ -22,12 +22,19 @@ void SimpleHashTablePair_destroy(SimpleHashTablePair_t pair, Destructor destruct
     {
         destructorForKey(pair->key);
     }
+    else
+    {
+        free(pair->key);
+    }
     if(destructorForElement != NULL)
     {
         destructorForElement(pair->element);
     }
-    free(pair->key);
-    free(pair->element);
+    else
+    {
+        free(pair->element);
+    }
+
 }
 
 int pjwHash(const char* key, int keySize, int tableSize) {

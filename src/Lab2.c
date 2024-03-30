@@ -43,12 +43,17 @@ int main(int argc, char** argv) {
 
     semanticAnalyze_End();
     freeParserNodes();
+
+    //testSymbolTable();
+
     return ret;
 }
 
 int testSymbolTable(){
     SymbolTable_t symbolTable = SymbolTable_create();
     SymbolRecord record;
+
+    SymbolTable_enterScope(symbolTable);
 
     printf("-----[testBasicVariable]-----\n");
 
