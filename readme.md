@@ -10,33 +10,44 @@
 - `src/CmmLexer.l` 词法分析器
 - `src/CmmParser.y` 语法分析器
 - `src/ErrorReporter.c` 错误报告器，使用散列表实现
+- `src/SemanticAnalyzer.c` 语义分析器，在遍历语法树的基础上进行语义检查
 - `src/Structure/SimpleArray.c` 用于管理树节点，以及为高级数据结构提供基础的的简易动态数组
 - `src/Structure/SimpleHashTable.c` 用于管理符号表和错误报告的简易哈希表
 - `src/Structure/TokenName.c` 用于从符号枚举值获取符号名
-- `src/Structure/SymbolTable.c` 符号表相关实现 (WIP)
+- `src/Structure/SymbolTable.c` 符号表相关实现，支持了一套动态内存管理的符号表，含有已弃用代码
 - `src/Structure/ParserNodes.c` 语法树节点，使用动态数组实现
-- `src/Structure/SemanticNodes.c` 语义树节点相关实现 (WIP)
+- `src/Structure/SemanticInfo.c` 语义信息，用于在语义节点中提供综合属性
 - `Lab1.c` 实验一主程序，包含了词法分析器和语法分析器的调用
-- `Lab2.c` 实验二主程序，包含了语义分析器的调用 (WIP)
+- `Lab2.c` 实验二主程序，包含了语义分析器的调用 (WIP:选做样例调试中)
 
 ## 项目编译
 
 从主目录下：
 
+Lab1:
 ```bash
 cd CmakeBuild
 cmake Lab1
-make all
+make Lab1
+```
+
+Lab2:
+```bash
+cd CmakeBuild
+cmake Lab2
+make Lab2
 ```
 
 如果未安装cmake，可以直接使用make命令进行编译
 
 ## 项目测试
 
-项目在`CmakeBuild/test`目录下内置了对于实验一的数个测试用例，可以通过执行`CmakeBuild`目录下的`Lab1BatchTest.sh`脚本进行测试
-测试结果输出至`CmakeBuild/test/output`目录下同名.pst文件中
+项目已在CmakeBuild目录下提供测试脚本，可执行`LabXBatchTest.sh`测试实验X，相关样例在`testLabX`目录下
 
-也可以单独执行./Lab1 [filename]进行测试
+当执行脚本时，实验一的树节点输出会被重定向到`testLab1/output/[caseName].pst`
+报错信息将打印到屏幕中。
+
+也可以单独执行`./Lab1 [filename]`进行测试
 
 ## 项目测试环境
 
