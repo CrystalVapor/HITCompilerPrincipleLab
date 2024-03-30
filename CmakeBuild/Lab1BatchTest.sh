@@ -5,19 +5,19 @@ if [ ! -f Lab1 ]; then
     exit 1
 fi
 
-if [ ! -d test ]; then
+if [ ! -d testLab1 ]; then
     echo "test directory not found"
     exit 1
 fi
 
 if [ ! -d test/output ]; then
-    mkdir test/output
+    mkdir testLab1/output
 fi
 
 echo  "---------------------------------"
-for file in test/*.cmm
+for file in testLab1/*.cmm
 do
     echo "Testing $file"
-    ./Lab1 $file > "test/output/${file#test/}.pst"
+    ./Lab1 $file > "testLab1/output/${file#testLab1/}.pst"
     echo "---------------------------------"
 done
