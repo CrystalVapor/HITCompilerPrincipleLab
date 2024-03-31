@@ -67,20 +67,27 @@ ERROR .
 {COMMENTSINGLE} { while (input() != '\n'); }
 {COMMENTMULTI} {
     int c;
+    // note that when input meets EOF, it will return 0, not EOF.(issue #2, CmmScanner.c, line 1751)
+    const int lexerEOF = 0;
     int startLine = yylineno;
-    while ((c = input()) != EOF) {
+    while ((c = input()) != lexerEOF) {
         if (c == '*') {
             if ((c = input()) == '/') {
                 break;
+            }
+            else if(c == lexerEOF)
+            {
+                goto error_UC;
             }
             else {
                 unput(c);
             }
         }
-        if (c == EOF) {
-            reportError(startLine, UnterminatedComment, "unterminated comment detected.");
-            break;
-        }
+    }
+error_UC:
+    if (c == lexerEOF) {
+                 reportError(startLine, UnterminatedComment, "unterminated comment detected.");
+                 break;
     }
 }
 
