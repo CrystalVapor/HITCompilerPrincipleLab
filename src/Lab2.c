@@ -29,17 +29,28 @@ int main(int argc, char** argv) {
     yyparse();
     int ret = hasError();
 
-    semanticAnalyze(getParserTreeRoot());
-
-    if(hasError()) {
-        printError(stderr);
-        resetErrorReporter();
-    }
-
 #ifdef DEBUG_PARSER_TREE
     printf("DEBUG_PARSER_NODES:\n");
     printAllNodes();
 #endif
+
+    if(ret)
+    {
+        printError(stderr);
+        fprintf(stderr, "Lexical or syntax error detected, aborted before semantic analyzing.\n");
+        freeParserNodes();
+        return ret;
+    }
+
+    semanticAnalyze(getParserTreeRoot());
+
+    ret = hasError();
+    if(ret) {
+        printError(stderr);
+        resetErrorReporter();
+    }
+
+
 
     semanticAnalyze_End();
     freeParserNodes();

@@ -9,6 +9,7 @@ set(RequiredMinimumVersion_Flex 2.5.35)
 set(RequiredMinimumVersion_Bison 2.5.0)
 set(Lab1Source src/Lab1.c)
 set(Lab2Source src/Lab2.c)
+set(Lab3Source src/Lab3.c)
 # ~~~~~~End of Variables~~~~~~
 
 # Find Flex and Bison
@@ -60,10 +61,15 @@ target_link_libraries(ParserAnalyzer Parser Lexer ErrorReporter)
 add_library(SemanticAnalyzer STATIC src/Structure/SymbolTable.c src/Structure/SemanticInfo.c src/SemanticAnalyzer.c)
 target_link_libraries(SemanticAnalyzer ParserAnalyzer ErrorReporter)
 
+add_library(InterCodeGenerator STATIC src/InterCodeGenerator.c)
+target_link_libraries(InterCodeGenerator SemanticAnalyzer)
+
 # Compile the project
 add_executable(Lab1 ${Lab1Source})
 add_executable(Lab2 ${Lab2Source})
+add_executable(Lab3 ${Lab3Source})
 
 # Link the project
 target_link_libraries(Lab1 ParserAnalyzer)
 target_link_libraries(Lab2 SemanticAnalyzer)
+target_link_libraries(Lab3 InterCodeGenerator)
