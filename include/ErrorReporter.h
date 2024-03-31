@@ -75,16 +75,26 @@ typedef enum ErrorType_e{
  */
 void reportErrorFormat(int line, int errorType, const char* format, ...);
 
-// print all errors to the file
+/**
+ * print all errors to file
+ * @param file file to print
+ */
 void printError(FILE* file);
 
-// reset the error reporter, clear all errors, and free all memory
+/**
+ * reset the error reporter, clear all errors, free all memory used by the reporter
+ */
 void resetErrorReporter();
 
-// return 0 if no error, otherwise return the number of errors
-// just check if reportError is called, do not check the content of the error
+/**
+ * check if there's any error reported
+ * @return 0 if no error, otherwise return the number of errors
+ */
 int hasError();
 
+/**
+ * do not use, just for disabling the default yyerror function
+ */
 void yyerror(const char* msg);
 
 #endif //LAB1_ERRORREPORTER_H

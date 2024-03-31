@@ -75,17 +75,17 @@ int SemanticInfo_isTypeMatched(SemanticInfo_t a, SemanticInfo_t b);
 
 /**
  * Check if the given two FunctionInfo have the same return type
- * @param a
- * @param b
- * @return
+ * @param a the first FunctionInfo
+ * @param b the second FunctionInfo
+ * @return  1 if the two FunctionInfo have the same return type, 0 otherwise
  */
 int SymbolInfo_Function_isReturnTypeMatched(SymbolInfo_Function_t a, SymbolInfo_Function_t b);
 
 /**
  * Check if the given two FunctionInfo have the same parameter list
- * @param a
- * @param b
- * @return
+ * @param a the first FunctionInfo
+ * @param b the second FunctionInfo
+ * @return  1 if the two FunctionInfo have the same parameter list, 0 otherwise
  */
 int SymbolInfo_Function_isParameterListMatched(SymbolInfo_Function_t a, SymbolInfo_Function_t b);
 
@@ -97,8 +97,21 @@ int SymbolInfo_Function_isParameterListMatched(SymbolInfo_Function_t a, SymbolIn
  */
 int SemanticInfo_checkValueType(SemanticInfo_t semanticInfo, Symbol_Value_Type type);
 
+/**
+ * Check if the value of semanticInfo matched the return type of the functionInfo
+ * @param functionInfo the functionInfo to be checked
+ * @param semanticInfo the semanticInfo to be checked
+ * @return 1 if the value of semanticInfo matched the return type of the functionInfo, 0 otherwise
+ */
 int SemanticInfo_checkReturnType(SymbolInfo_Function_t functionInfo, SemanticInfo_t semanticInfo);
 
+/**
+ * Check if the parameter list of the functionInfo matched the given semanticInfos
+ * @param functionInfo the functionInfo to be checked
+ * @param semanticInfos the semanticInfos to be checked
+ * @param paramCount the count of the semanticInfos
+ * @return 1 if the parameter list of the functionInfo matched the given semanticInfos, 0 otherwise
+ */
 int SemanticInfo_checkParameterList(SymbolInfo_Function_t functionInfo, SemanticInfo_t* semanticInfos, int paramCount);
 
 /**
@@ -109,6 +122,14 @@ int SemanticInfo_checkParameterList(SymbolInfo_Function_t functionInfo, Semantic
  */
 SymbolInfo_Member_t SemanticInfo_getMemberInfo(SemanticInfo_t semanticInfo, const char* memberName);
 
+/**
+ * Helper Function to check if the two types are matched
+ * @param aType type of a
+ * @param aMeta type meta of a
+ * @param bType type of b
+ * @param bMeta type meta of b
+ * @return 1 if matched, 0 otherwise
+ */
 int SymbolInfo_Helper_isTypeMatched(Symbol_Value_Type aType, SymbolInfo_t aMeta, Symbol_Value_Type bType, SymbolInfo_t bMeta);
 
 #endif //LAB1_SEMANTICINFO_H

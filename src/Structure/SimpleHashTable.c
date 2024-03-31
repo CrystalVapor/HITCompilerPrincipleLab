@@ -5,6 +5,7 @@
 
 #include <string.h>
 #include <malloc.h>
+#include <stdarg.h>
 #include "Structure/SimpleHashTable.h"
 
 void SimpleHashTablePair_setPair(SimpleHashTablePair_t pair, const void* key, int keySize, const void* element, int elementSize)
@@ -136,7 +137,7 @@ void* SimpleHashTable_find(SimpleHashTable_t hashTable, const void* key, int key
     return NULL;
 }
 
-void SimpleHashTable_removeWithDestructor(SimpleHashTable_t hashTable, const void* key, int keySize, Destructor destructorForKey, Destructor destructorForElement) {
+void SimpleHashTable_remove(SimpleHashTable_t hashTable, const void* key, int keySize, Destructor destructorForKey, Destructor destructorForElement) {
     int index = hashTable->hashFunc(key, keySize, hashTable->tableSize);
     SimpleArray_t list = *((SimpleArray_t*) SimpleArray_at(hashTable->data, index));
     if (list == NULL)
@@ -189,5 +190,24 @@ void SimpleHashTable_forceInsert(SimpleHashTable_t hashTable, const void *key, i
     SimpleHashTablePair newPair;
     SimpleHashTablePair_setPair(&newPair, key, keySize, element, hashTable->elementSize);
     SimpleArray_addElement(list, &newPair);
+}
+
+void
+SimpleHashTable_advancedTraverse(SimpleHashTable_t hashTable, AdvancedTraverseFunc traverseFunc, int extraParamCount,
+                                 ...) {
+    if(traverseFunc == NULL)
+        return;
+    va_list args;
+    va_start(args, extraParamCount);
+    for (int i = 0; i < hashTable->tableSize; i++) {
+        SimpleArray_t list = *((SimpleArray_t*) SimpleArray_at(hashTable->data, i));
+        if (list != NULL) {
+            for (int j = 0; j < list->num; j++) {
+                SimpleHashTablePair_t pair = (SimpleHashTablePair_t) SimpleArray_at(list, j);
+                traverseFunc(pair->key, pair->keySize, pair->element, extraParamCount, args);
+            }
+        }
+    }
+    va_end(args);
 }
 
