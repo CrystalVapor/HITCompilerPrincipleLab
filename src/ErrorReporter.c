@@ -162,10 +162,6 @@ int cmpErrorPriority(int errorType1, int errorType2) {
     if (errorType1 == errorType2) {
         return 0;
     }
-    if(errorType1<errorType2)
-    {
-        return -cmpErrorPriority(errorType2, errorType1);
-    }
     if(IS_LEXICAL_ERROR(errorType1))
     {
         if(IS_LEXICAL_ERROR(errorType2))
@@ -179,12 +175,24 @@ int cmpErrorPriority(int errorType1, int errorType2) {
         {
             return errorType1 - errorType2;
         }
+        else if(IS_LEXICAL_ERROR(errorType2))
+        {
+            return -1;
+        }
     }
     if(IS_SEMANTIC_ERROR(errorType1))
     {
         if(IS_SEMANTIC_ERROR(errorType2))
         {
             return 0;
+        }
+        if(IS_LEXICAL_ERROR(errorType2))
+        {
+            return -1;
+        }
+        if(IS_SYNTAX_ERROR(errorType2))
+        {
+            return -1;
         }
     }
     return 1;
