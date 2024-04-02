@@ -259,6 +259,10 @@ void semanticAnalyze_End(){
     SimpleArray_destroy(functionForwardDeclarationList, NULL);
 }
 
+SymbolTable_t semanticAnalyze_getSymbolTable() {
+    return symbolTable;
+}
+
 int Analyze_Program(ParserNode_I nodeIndex){
     if(isChildrenMatchRule(nodeIndex, 1, EXT_DEF_LIST)){
         Analyze_ExtDefList(GET_CHILD(nodeIndex, 0));

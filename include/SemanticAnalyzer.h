@@ -16,4 +16,11 @@ int semanticAnalyze(ParserNode_I rootNodeIndex);
  */
 void semanticAnalyze_End();
 
+/**
+ * Get the symbol table after the semantic analyze.
+ * Only valid after the semantic analyze.
+ * @return the symbol table.
+ */
+SymbolTable_t semanticAnalyze_getSymbolTable();
+
 #endif //LAB1_SEMANTICANALYZER_H
