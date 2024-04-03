@@ -55,9 +55,9 @@ int main(int argc, char** argv){
         return ret;
     }
 
-    generateInterCode(getParserTreeRoot(), stdout);
+   /* generateInterCode(getParserTreeRoot(), stdout);
 
-    generateInterCode_End();
+    generateInterCode_End();*/
     semanticAnalyze_End();
     freeParserNodes();
 
