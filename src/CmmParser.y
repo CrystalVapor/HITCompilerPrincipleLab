@@ -140,6 +140,7 @@ VarList:
 
 ParamDec:
     Specifier VarDec                        {ParserNode_I children[2] = {$1, $2}; $$ = newParserNode(PARAM_DEC, NO_LINE_NUMBER, 2, children, INVALID_NODE_INDEX);}
+
     |VarDec                                 {reportError(getParserNode($1)->lineNum, MissingSpecifier, "Missing Specifier");}
     ;
 
