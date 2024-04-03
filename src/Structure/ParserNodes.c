@@ -4,11 +4,11 @@
 
 #include "Lab1.h"
 #include <stdio.h>
+#include <stdarg.h>
 #include "stdlib.h"
 #include "string.h"
 #include "Structure/SimpleArray.h"
 #include "CmmParserTypes.h"
-#include "Structure/SemanticInfo.h"
 
 #include "Structure/ParserNodes.h"
 
@@ -271,4 +271,27 @@ ParserNode_I getParserNodeChild(ParserNode_I index, int childIndex) {
 int getParserNodeChildNum(ParserNode_I index) {
     ParserNodeIndexContainer_t children = getParserNode(index)->children;
     return children->num;
+}
+
+int isChildrenMatchRule(ParserNode_I nodeIndex, int ruleSize, ...) {
+    if (GET_NODE(nodeIndex)->children == NULL)
+    {
+        if(ruleSize == 0)
+            return 1;
+        else
+            return 0;
+    }
+    if (GET_CHILD_NUM(nodeIndex) != ruleSize) {
+        return 0;
+    }
+    va_list params;
+    va_start(params, ruleSize);
+    for (int i = 0; i < ruleSize; i++) {
+        if (GET_CHILD_NODE(nodeIndex, i)->token != va_arg(params, int)) {
+            va_end(params);
+            return 0;
+        }
+    }
+    va_end(params);
+    return 1;
 }

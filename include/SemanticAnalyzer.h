@@ -5,6 +5,9 @@
 #ifndef LAB1_SEMANTICANALYZER_H
 #define LAB1_SEMANTICANALYZER_H
 
+struct SymbolTable_s;
+typedef struct SymbolTable_s* SymbolTable_t;
+
 /**
  * Analyze the semantic of the parser tree.
  * @return the number of semantic errors.

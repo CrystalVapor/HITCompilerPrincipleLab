@@ -6,6 +6,7 @@
  * 碎碎念：
  * 这里是一开始编写的地方，当时过于迷恋动态内存管理，所以将ParserNode的管理写得很复杂。
  * 实际上这里parsernode应该使用保存在数组中的指针而非保存数组索引（不直接保存数组内指针的原因是因为可能realloc后失效）
+ * (再注：不过由于没有移除节点的需求，似乎可以使用块状链表以避免不断少量申请内存产生的内存碎片，同样也可以安全地保存指针)
  * 另外就算如此，parsernode的子节点也应该使用一个C数组而非动态数组。
  * 不过懒得改了，将就着用吧（
  */
@@ -16,6 +17,11 @@
 #include "CmmParserTypes.h"
 
 #define INVALID_NODE_INDEX (-1)
+
+#define GET_NODE(nodeIndex)  (getParserNode(nodeIndex))
+#define GET_CHILD(nodeIndex, i)  (getParserNodeChild(nodeIndex, i))
+#define GET_CHILD_NODE(nodeIndex, i)  (GET_NODE(GET_CHILD(nodeIndex, i)))
+#define GET_CHILD_NUM(nodeIndex)  (getParserNodeChildNum(nodeIndex))
 
 void setParserTreeRoot(ParserNode_I InRootIndex);
 
@@ -141,5 +147,14 @@ void printParserNode(ParserNode_I nodeIndex, int depth);
  * do not use.
  */
 void yyerror(const char* msg);
+
+/**
+ * Check if the children of the node match the rule
+ * @param nodeIndex the node to be checked
+ * @param ruleSize the size of rule
+ * @param ... rule, should be a list of token(Lexical or Syntax)
+ * @return 1 if match, 0 if not match
+ */
+int isChildrenMatchRule(ParserNode_I nodeIndex, int ruleSize, ...);
 
 #endif //LAB1_PARSERNODES_H

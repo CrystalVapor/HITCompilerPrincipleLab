@@ -12,11 +12,6 @@
 
 #include "SemanticAnalyzer.h"
 
-#define GET_NODE(nodeIndex)  (getParserNode(nodeIndex))
-#define GET_CHILD(nodeIndex, i)  (getParserNodeChild(nodeIndex, i))
-#define GET_CHILD_NODE(nodeIndex, i)  (GET_NODE(GET_CHILD(nodeIndex, i)))
-#define GET_CHILD_NUM(nodeIndex)  (getParserNodeChildNum(nodeIndex))
-
 #define GET_SEMANTIC_INFO(nodeIndex)  ((SemanticInfo_t)GET_NODE(nodeIndex)->semanticInfo)
 
 int semanticErrors = 0;
@@ -1263,29 +1258,5 @@ void Analyze_Helper_operatorTwoParameters(ParserNode_I nodeIndex, ParserNode_t n
     }
 }
 #pragma clang diagnostic pop
-
-int isChildrenMatchRule(ParserNode_I nodeIndex, int ruleSize, ...) {
-    if (GET_NODE(nodeIndex)->children == NULL)
-    {
-        if(ruleSize == 0)
-            return 1;
-        else
-            return 0;
-    }
-    if (GET_CHILD_NUM(nodeIndex) != ruleSize) {
-        return 0;
-    }
-    va_list params;
-    va_start(params, ruleSize);
-    for (int i = 0; i < ruleSize; i++) {
-        if (GET_CHILD_NODE(nodeIndex, i)->token != va_arg(params, int)) {
-            va_end(params);
-            return 0;
-        }
-    }
-    va_end(params);
-    return 1;
-}
-
 
 #pragma clang diagnostic pop
