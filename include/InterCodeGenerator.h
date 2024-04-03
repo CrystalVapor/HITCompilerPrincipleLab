@@ -2,6 +2,13 @@
 // Created by Crystal on 2024/3/31.
 //
 
+/**
+ * 碎碎念：实际上这一部分按照我的预期应该是嵌入语义分析器的
+ * （你可以看出来这一部分跟语义分析几乎是同一个设计思路）
+ * 但是……这样做的话语义分析器那边复杂度估计会爆炸……
+ * 所以……狠狠摆了！
+ */
+
 #ifndef LAB1_INTERCODEGENERATOR_H
 #define LAB1_INTERCODEGENERATOR_H
 
@@ -11,6 +18,11 @@
 
 struct InterCodeInfo_s;
 
+/**
+ * 这是个虚表，我写上只是为了好玩而已，没必要复现这玩意
+ * 如果对虚表感到好奇可以找一下相关资料
+ * 顺带着推荐一下我的知乎专栏，有讲虚表相关的东西（，直接去搜我ID就好
+ */
 typedef struct {
     void (*generateInterCode) (struct InterCodeInfo_s* interCodeInfo, FILE* file);
 }InterCodeInfo_VT;
@@ -76,6 +88,10 @@ typedef struct{
     InterCodeInfo_t codes[];
 }InterCodeContainer;
 typedef InterCodeContainer* InterCodeContainer_t;
+
+typedef int InterCodeHandle;
+
+#define INVALID_INTERCODE_HANDLE (-1)
 
 /**
  * Generate intermediate code for the given syntax tree.
