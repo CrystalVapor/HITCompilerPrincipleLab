@@ -633,6 +633,8 @@ int Analyze_CompSt(ParserNode_I nodeIndex){
     if(isChildrenMatchRule(nodeIndex, 4, LC, DEF_LIST, STMT_LIST, RC)){
         Analyze_DefList_Variable(GET_CHILD(nodeIndex, 1));
         Analyze_StmtList(GET_CHILD(nodeIndex, 2));
+        // use intVal to store current scope for intercode generation
+        GET_NODE(nodeIndex)->intVal = SymbolTable_getScope(symbolTable);
     }
     return 0;
 }
