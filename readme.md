@@ -11,6 +11,7 @@
 - `src/CmmParser.y` 语法分析器
 - `src/ErrorReporter.c` 错误报告器，使用散列表实现
 - `src/SemanticAnalyzer.c` 语义分析器，在遍历语法树的基础上进行语义检查
+- `src/InterCodeGenerator.c` 中间代码生成器，生成三地址码，手动实现了虚表和多态(只是为了好玩)(WIP)
 - `src/Structure/SimpleArray.c` 用于管理树节点，以及为高级数据结构提供基础的的简易动态数组
 - `src/Structure/SimpleHashTable.c` 用于管理符号表和错误报告的简易哈希表
 - `src/Structure/TokenName.c` 用于从符号枚举值获取符号名
@@ -18,7 +19,8 @@
 - `src/Structure/ParserNodes.c` 语法树节点，使用动态数组实现
 - `src/Structure/SemanticInfo.c` 语义信息，用于在语义节点中提供综合属性
 - `Lab1.c` 实验一主程序，包含了词法分析器和语法分析器的调用
-- `Lab2.c` 实验二主程序，包含了语义分析器的调用 (WIP:选做样例调试中)
+- `Lab2.c` 实验二主程序，包含了语义分析器的调用
+- `Lab3.c` 实验三主程序，包含了中间代码生成器的调用(WIP)
 
 ## 项目编译
 
@@ -38,6 +40,13 @@ cmake Lab2
 make Lab2
 ```
 
+Lab3:
+```bash
+cd CmakeBuild
+cmake Lab3
+make Lab3
+```
+
 如果未安装cmake，可以直接使用make命令进行编译
 
 ## 项目测试
@@ -52,9 +61,12 @@ make Lab2
 ## 项目测试环境
 
 IDE: CLion 2023.3.4
-Thanks to JetBrains for providing the Education License!
+
+*Thanks to JetBrains for providing the Education License!*
 
 AI Assistant: GitHub Copilot
+
+*Thanks to GitHub for providing the Education License!*
 
 - Ubuntu 22.04.2 LTS
 - gcc 11.4.0
