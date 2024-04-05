@@ -13,8 +13,9 @@
 #define LAB1_INTERCODEGENERATOR_H
 
 #include "CmmParserTypes.h"
+#include "Structure/SimpleList.h"
 
-#define MAX_INTERCODE_PARAM 5
+#define MAX_INTERCODE_PARAM 3
 
 struct InterCodeInfo_s;
 
@@ -27,6 +28,12 @@ typedef struct {
     void (*generateInterCode) (struct InterCodeInfo_s* interCodeInfo, FILE* file);
 }InterCodeInfo_VT;
 typedef InterCodeInfo_VT* InterCodeInfo_VT_t;
+
+typedef enum{
+    ICT_TEMP_VAR,
+    ICT_TEMP_LABEL,
+    ICT_TEMP_PARAM,
+}InterCodeTempType;
 
 typedef enum {
     IC_LABEL = 0,
@@ -72,7 +79,9 @@ typedef struct {
         char* varName;
         char* labelName;
     };
+    int scope;
 }InterCodeParam;
+typedef InterCodeParam* InterCodeParam_t;
 
 typedef struct InterCodeInfo_s{
     InterCodeInfo_VT_t vptr;
@@ -83,15 +92,22 @@ typedef struct InterCodeInfo_s{
 typedef InterCodeInfo* InterCodeInfo_t;
 
 typedef struct{
-    void* meta;
-    int codeNum;
-    InterCodeInfo_t codes[];
+    SimpleList_t codes;
+    InterCodeParam_t returnVar;
+    InterCodeParam_t trueLabel[10];
+    InterCodeParam_t falseLabel[10];
 }InterCodeContainer;
 typedef InterCodeContainer* InterCodeContainer_t;
+typedef InterCodeContainer_t InterCodeHandle;
 
-typedef int InterCodeHandle;
+typedef struct{
+    char* retVal;
+    char* trueLabel;
+    char* falseLabel;
+}InterCodeInstruction;
+typedef InterCodeInstruction* InterCodeInstruction_t;
 
-#define INVALID_INTERCODE_HANDLE (-1)
+#define INVALID_INTERCODE_HANDLE (NULL)
 
 /**
  * Generate intermediate code for the given syntax tree.
@@ -124,6 +140,42 @@ InterCodeInfo_t InterCodeInfo_create(InterCodeType type, int paramNum, ...);
  * @return characters printed to buffer(including the null terminator)
  */
 int InterCodeParam_printToBuffer(InterCodeParam* param, char* buffer, int bufferSize);
+
+InterCodeParam_t InterCodeParam_createInt(int intVal);
+
+InterCodeParam_t InterCodeParam_createVar(char* varName);
+
+InterCodeParam_t InterCodeParam_createLabel(char* labelName);
+
+/**
+ * Merge two InterCodeHandle.
+ * Do not use the two InterCodeHandle after merge, it's not safe.
+ * Will free the handle merged in the process.
+ * @param handle1
+ * @param handle2
+ * @return merged InterCodeHandle
+ */
+InterCodeHandle InterCodeHandle_merge(InterCodeHandle handle1, InterCodeHandle handle2);
+
+/**
+ * Create a new InterCodeHandle.
+ * @return the new InterCodeHandle.
+ */
+InterCodeHandle InterCodeHandle_create();
+
+/**
+ *
+ * @param codeType
+ * @param paramNum
+ * @param ...
+ * @return
+ */
+void InterCodeHandle_newCode(InterCodeHandle handle, InterCodeType codeType, int paramNum, ...);
+/**
+ * Destroy the InterCodeHandle.
+ * @param handle the handle to destroy.
+ */
+void InterCodeHandle_destroy(InterCodeHandle handle);
 
 #define INTERCODEPARAM_GETLABEL(param) ((param)->labelName)
 #define INTERCODEPARAM_GETVAR(param) ((param)->varName)
