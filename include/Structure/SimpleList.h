@@ -78,4 +78,14 @@ void SimpleList_insertBefore(SimpleList_t list, SimpleListNode_t pos, void* data
  * @param data data to insert
  */
 void SimpleList_insertAfter(SimpleList_t list, SimpleListNode_t pos, void* data);
+
+/**
+ * Append list2 to list1
+ * do not use list2 or list1 after this operation, it's not safe
+ * only returned list is considered valid
+ * @param list1
+ * @param list2
+ * @return appended list1
+ */
+SimpleList_t SimpleList_append(SimpleList_t list1, SimpleList_t list2);
 #endif //LAB1_SIMPLELIST_H

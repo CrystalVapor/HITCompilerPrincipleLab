@@ -115,3 +115,28 @@ void SimpleList_insertAfter(SimpleList_t list, SimpleListNode_t pos, void *data)
     pos->next = newNode;
     list->size++;
 }
+
+SimpleList_t SimpleList_append(SimpleList_t list1, SimpleList_t list2) {
+    if (list1 == NULL) {
+        return list2;
+    }
+    if (list2 == NULL) {
+        return list1;
+    }
+    if(list1->size == 0)
+    {
+        free(list1);
+        return list2;
+    }
+    if(list2->size == 0)
+    {
+        free(list2);
+        return list1;
+    }
+    list1->tail->next = list2->head;
+    list2->head->prev = list1->tail;
+    list1->tail = list2->tail;
+    list1->size += list2->size;
+    free(list2);
+    return list1;
+}

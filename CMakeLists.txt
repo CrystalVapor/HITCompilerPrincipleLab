@@ -51,7 +51,7 @@ target_link_libraries(Lexer ${FLEX_LIBRARIES})
 target_link_libraries(Parser ${BISON_LIBRARIES})
 
 # Add Libs
-add_library(SimpleContainers STATIC src/Structure/SimpleArray.c src/Structure/SimpleHashTable.c)
+add_library(SimpleContainers STATIC src/Structure/SimpleArray.c src/Structure/SimpleHashTable.c src/Structure/SimpleList.c)
 add_library(ErrorReporter STATIC src/ErrorReporter.c)
 target_link_libraries(ErrorReporter SimpleContainers)
 
