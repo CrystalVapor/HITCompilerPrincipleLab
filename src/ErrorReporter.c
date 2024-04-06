@@ -78,7 +78,9 @@ const char* getErrorTypeName(int errorType){
     }
     else if(IS_SEMANTIC_ERROR(errorType))
     {
-        return semanticErrorTypeNames[errorType - SEMANTIC_ERROR_BASE];
+        if(errorType != UNDEF_SEMANTIC_ERROR) {
+            return semanticErrorTypeNames[errorType - SEMANTIC_ERROR_BASE];
+        }
     }
     return "UNDEF";
 }

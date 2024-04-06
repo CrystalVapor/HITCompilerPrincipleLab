@@ -7,6 +7,7 @@
 #include "Structure/SymbolTable.h"
 
 #include "InterCodeGenerator.h"
+#include "ErrorReporter.h"
 
 char tempBuffer[100];
 
@@ -837,9 +838,7 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
         // can also do this in semantic analyze
         // but how???
         // we can give a special mark to variable that it is a param.
-        // and reuse the temp N.O. used by variable to mark which parm it is.
-
-        // if is, use paramname
+        // use varID to find the param
 
         // if not, try finding a relative temp var.
         // we can support this in semantic analyze
@@ -853,7 +852,7 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
         return newHandle;
     }
     else if(isChildrenMatchRule(nodeIndex, 1, FLOAT)){
-        // consider an error, float is not supported
+        reportErrorFormat(GET_NODE(nodeIndex)->lineNum, UNDEF_SEMANTIC_ERROR, "Float is not supported in intermediate code.");
         exit(-1);
     }
     return INVALID_INTERCODE_HANDLE;

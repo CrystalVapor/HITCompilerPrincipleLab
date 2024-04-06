@@ -363,8 +363,13 @@ void Analyze_HandleFunctionDefintion(ParserNode_I nodeIndex) {
 
                 for(int i = 0; i < functionInfo->parameterCount; i++){
                     SymbolInfo_Parameter_t parameter = functionInfo->parameters[i];
+
                     SymbolRecord parameterRecord;
-                    SymbolTable_createVariable(symbolTable, &parameterRecord, parameter->parameterType, parameter->parameterMeta);
+                    SymbolInfo_Variable_t info = SymbolInfo_Variable_createBaked(parameter->parameterType,
+                                                                                 parameter->parameterMeta);
+                    (&parameterRecord)->type = ST_Variable;
+                    (&parameterRecord)->info = info;
+
                     SymbolTable_insertRecord(symbolTable, parameter->parameterName, &parameterRecord);
                 }
 
