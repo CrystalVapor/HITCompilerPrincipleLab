@@ -11,10 +11,10 @@
 int SymbolInfo_isStructTypeMatched(SymbolInfo_Struct_t a, SymbolInfo_Struct_t b);
 int SymbolInfo_isArrayTypeMatched(SymbolInfo_Array_t a, SymbolInfo_Array_t b);
 
-SemanticInfo_t SemanticInfo_createLvalue(Symbol_Value_Type valueType, SymbolInfo_t valueInfo, int scope, SimpleArray_t semanticInfoList) {
+SemanticInfo_t
+SemanticInfo_createLvalue(Symbol_Value_Type valueType, SymbolInfo_t valueInfo, SimpleArray_t semanticInfoList) {
     SemanticInfo_t semanticInfo = (SemanticInfo_t)malloc(sizeof(SemanticInfo));
     semanticInfo->isLValue = 1;
-    semanticInfo->scope = scope;
     semanticInfo->valueType = valueType;
     semanticInfo->valueInfo = valueInfo;
     SimpleArray_pushBack(semanticInfoList, &semanticInfo);
@@ -24,7 +24,6 @@ SemanticInfo_t SemanticInfo_createLvalue(Symbol_Value_Type valueType, SymbolInfo
 SemanticInfo_t SemanticInfo_createRvalue(Symbol_Value_Type valueType, SymbolInfo_t valueInfo, SimpleArray_t semanticInfoList) {
     SemanticInfo_t semanticInfo = (SemanticInfo_t)malloc(sizeof(SemanticInfo));
     semanticInfo->isLValue = 0;
-    semanticInfo->scope = INVALID_SCOPE;
     semanticInfo->valueType = valueType;
     semanticInfo->valueInfo = valueInfo;
     SimpleArray_pushBack(semanticInfoList, &semanticInfo);
@@ -142,9 +141,9 @@ int SymbolInfo_isArrayTypeMatched(SymbolInfo_Array_t a, SymbolInfo_Array_t b) {
     if(a->dimensionCount == b->dimensionCount)
     {
         if(SymbolInfo_Helper_isTypeMatched(a->elementType,
-                                           a->elementStructInfo,
+                                           a->elementMeta,
                                            b->elementType,
-                                           b->elementStructInfo))
+                                           b->elementMeta))
         {
             return 1;
         }

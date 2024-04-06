@@ -12,7 +12,7 @@ typedef struct SymbolTable_s* SymbolTable_t;
  * Analyze the semantic of the parser tree.
  * @return the number of semantic errors.
  */
-int semanticAnalyze(ParserNode_I rootNodeIndex);
+int semanticAnalyze(ParserNode_I rootNodeIndex, SymbolTable_t inSymbolTable);
 
 /**
  * End the semantic analyze, free the memory used by the semantic analyzer.

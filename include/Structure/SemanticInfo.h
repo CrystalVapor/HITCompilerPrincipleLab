@@ -19,9 +19,6 @@ typedef struct SemanticInfo_s{
     Symbol_Value_Type valueType;
     SymbolInfo_t valueInfo;
 
-    // Lvalue members, following members are only valid when isLValue is true
-    int scope;
-
     // Semantic information
     int isLValue;
 }SemanticInfo;
@@ -32,11 +29,11 @@ typedef SemanticInfo* SemanticInfo_t;
  * @note IN Cmm, ALL Lvalue should be Variable
  * @param valueType the value type of the LValue
  * @param valueInfo the value information of the LValue
- * @param scope the scope of the SemanticInfo object
  * @param semanticInfoList the list to collect recently created semanticInfo, used for garbage collection
  * @return a new SemanticInfo object
  */
-SemanticInfo_t SemanticInfo_createLvalue(Symbol_Value_Type valueType, SymbolInfo_t valueInfo, int scope, SimpleArray_t semanticInfoList);
+SemanticInfo_t
+SemanticInfo_createLvalue(Symbol_Value_Type valueType, SymbolInfo_t valueInfo, SimpleArray_t semanticInfoList);
 
 /**
  * Create a new Rvalue SemanticInfo object

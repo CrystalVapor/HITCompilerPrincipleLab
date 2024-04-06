@@ -223,9 +223,11 @@ void Analyze_HandleFunctionDefintion(ParserNode_I nodeIndex);
 
 void Analyze_HandleFunctionDeclaration(ParserNode_I nodeIndex);
 
-int semanticAnalyze(ParserNode_I rootNodeIndex) {
+void checkUndefinedFunctions();
+
+int semanticAnalyze(ParserNode_I rootNodeIndex, SymbolTable_t inSymbolTable) {
     semanticErrors = 0;
-    symbolTable = SymbolTable_create();
+    symbolTable = inSymbolTable;
     semanticInfoList = SimpleArray_create(sizeof(SemanticInfo_t));
     anonymousStructList = SimpleArray_create(sizeof(SymbolInfo_Struct_t));
     currentStructInfoStack = SimpleArray_create(sizeof(SymbolInfo_Struct_t));
@@ -233,7 +235,12 @@ int semanticAnalyze(ParserNode_I rootNodeIndex) {
     currentTypeMeta = SimpleArray_create(sizeof(SymbolInfo_t));
     functionForwardDeclarationList = SimpleArray_create(sizeof(SymbolInfo_Function_t));
     Analyze_Program(rootNodeIndex);
-    if(functionForwardDeclarationList->num!=0)
+    checkUndefinedFunctions();
+    return semanticErrors;
+}
+
+void checkUndefinedFunctions() {
+    if(functionForwardDeclarationList->num != 0)
     {
         for(int i = 0; i < functionForwardDeclarationList->num; i++)
         {
@@ -241,11 +248,9 @@ int semanticAnalyze(ParserNode_I rootNodeIndex) {
             reportErrorFormat(functionInfo->firstDeclaredLine, UndefinedExternalFunction, "Function \"%s\" declared but not defined", functionInfo->functionName);
         }
     }
-    return semanticErrors;
 }
 
 void semanticAnalyze_End(){
-    SymbolTable_destroy(symbolTable);
     SimpleArray_destroy(semanticInfoList, SemanticInfo_destroy);
     SimpleArray_destroy(anonymousStructList, Analyze_Helper_DestructorForAnonymousStruct);
     SimpleArray_destroy(currentStructInfoStack, NULL);
@@ -303,8 +308,8 @@ void Analyze_HandleFunctionDefintion(ParserNode_I nodeIndex) {
     functionInfo->returnType = returnType;
     functionInfo->returnTypeMeta = returnMeta;
 
-    // Set to a valid offset to tell the function is defined
-    functionInfo->offset = 1;
+    // Set to a valid isDefined to tell the function is defined
+    functionInfo->isDefined = 1;
 
     // check if the function is defined & forward declaration check
     // use var name to store the function name
@@ -330,13 +335,12 @@ void Analyze_HandleFunctionDefintion(ParserNode_I nodeIndex) {
         }
         else{
             SymbolInfo_Function_t existedFuncInfo = record->info;
-            existedFuncInfo->offset = 1;
+            existedFuncInfo->isDefined = 1;
             // remove the undefined forward declaration
             for(int i = 0; i < functionForwardDeclarationList->num; i++)
             {
                 SymbolInfo_Function_t forwardFunction = *((SymbolInfo_Function_t*)SimpleArray_at(functionForwardDeclarationList, i));
-                // same memory address, remove the forward declaration
-                if(existedFuncInfo == forwardFunction)
+                if(strcmp(forwardFunction->functionName, functionName) == 0)
                 {
                     SimpleArray_removeElement(functionForwardDeclarationList, i, NULL);
                     break;
@@ -349,7 +353,7 @@ void Analyze_HandleFunctionDefintion(ParserNode_I nodeIndex) {
     }
     else{
         functionInfo->firstDeclaredLine = GET_NODE(nodeIndex)->lineNum;
-        functionInfo->offset = 1;
+        functionInfo->isDefined = 1;
         SymbolRecord outRecord;
         SymbolTable_createFunctionByInfo(symbolTable, &outRecord, functionInfo);
         SymbolTable_insertRecord(symbolTable, functionName, &outRecord);
@@ -361,14 +365,15 @@ void Analyze_HandleFunctionDefintion(ParserNode_I nodeIndex) {
         Analyze_pushCurrentFunctionInfo(functionInfo);
             SymbolTable_enterScope(symbolTable);
 
+                // insert the parameters into the symbol table(as variables)
                 for(int i = 0; i < functionInfo->parameterCount; i++){
                     SymbolInfo_Parameter_t parameter = functionInfo->parameters[i];
 
                     SymbolRecord parameterRecord;
                     SymbolInfo_Variable_t info = SymbolInfo_Variable_createBaked(parameter->parameterType,
                                                                                  parameter->parameterMeta);
-                    (&parameterRecord)->type = ST_Variable;
-                    (&parameterRecord)->info = info;
+                    parameterRecord.type = ST_Variable;
+                    parameterRecord.info = info;
 
                     SymbolTable_insertRecord(symbolTable, parameter->parameterName, &parameterRecord);
                 }
@@ -382,7 +387,7 @@ void Analyze_HandleFunctionDefintion(ParserNode_I nodeIndex) {
             SymbolTable_leaveScope(symbolTable);
         Analyze_popCurrentFunctionInfo();
 
-    // this will be set to 0 if the function's return type is not matched
+    // this will be set to 0 if something goes wrong with the function
     if(!currentFunctionValid)
     {
         SymbolInfo_Function_destroy(functionInfo);
@@ -400,8 +405,7 @@ void Analyze_HandleFunctionDeclaration(ParserNode_I nodeIndex) {
     functionInfo->returnType = returnType;
     functionInfo->returnTypeMeta = returnMeta;
 
-    // set to INVALID_OFFSET to tell the function is not defined
-    functionInfo->offset = INVALID_OFFSET;
+    functionInfo->isDefined = 0;
 
     char* functionName = Analyze_getCurrentVarName();
     SymbolRecord_t record;
@@ -1141,16 +1145,17 @@ int Analyze_Exp(ParserNode_I nodeIndex){
         if(!SemanticInfo_checkValueType(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)), SVT_Array)){
             reportErrorFormat(node->lineNum, ArrayAccessOnNonArray, "Array access on non-array");
             //make an empty semantic info to let the analysis can continue
-            node->semanticInfo = SemanticInfo_createLvalue(SVT_Int, NULL, INVALID_SCOPE, semanticInfoList);
+            node->semanticInfo = SemanticInfo_createLvalue(SVT_Int, NULL, semanticInfoList);
         }
         else if(!SemanticInfo_checkValueType(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 2)), SVT_Int)){
             reportErrorFormat(node->lineNum, ArrayIndexTypeMismatch, "Array index type mismatch");
             //make an empty semantic info to let the analysis can continue
-            node->semanticInfo = SemanticInfo_createLvalue(SVT_Int, NULL, INVALID_SCOPE, semanticInfoList);
+            node->semanticInfo = SemanticInfo_createLvalue(SVT_Int, NULL, semanticInfoList);
         }
         else{
             SymbolInfo_Array_t arrayInfo = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo;
-            node->semanticInfo = SemanticInfo_createLvalue(arrayInfo->elementType, arrayInfo->elementStructInfo, GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->scope, semanticInfoList);
+            node->semanticInfo = SemanticInfo_createLvalue(arrayInfo->elementType, arrayInfo->elementMeta,
+                                                           semanticInfoList);
         }
     }
     else if(isChildrenMatchRule(nodeIndex, 3, EXP, DOT, ID)){
@@ -1160,7 +1165,7 @@ int Analyze_Exp(ParserNode_I nodeIndex){
         if(!SemanticInfo_checkValueType(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)), SVT_Struct)){
             reportErrorFormat(node->lineNum, MemberAccessOnNonStruct, "Member access on non-struct");
             //make an empty semantic info to let the analysis can continue
-            node->semanticInfo = SemanticInfo_createLvalue(SVT_Int, NULL, INVALID_SCOPE, semanticInfoList);
+            node->semanticInfo = SemanticInfo_createLvalue(SVT_Int, NULL, semanticInfoList);
         }
         else{
             SymbolInfo_Member_t member = SemanticInfo_getMemberInfo(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)),
@@ -1169,10 +1174,11 @@ int Analyze_Exp(ParserNode_I nodeIndex){
                 reportErrorFormat(node->lineNum, UndefinedStructMember, "Undefined struct member \"%s\"",
                                   GET_NODE(GET_CHILD(nodeIndex, 2))->ID);
                 //make an empty semantic info to let the analysis can continue
-                node->semanticInfo = SemanticInfo_createLvalue(SVT_Int, NULL, INVALID_SCOPE, semanticInfoList);
+                node->semanticInfo = SemanticInfo_createLvalue(SVT_Int, NULL, semanticInfoList);
             }
             else{
-                node->semanticInfo = SemanticInfo_createLvalue(member->memberType, member->memberMeta, GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->scope, semanticInfoList);
+                node->semanticInfo = SemanticInfo_createLvalue(member->memberType, member->memberMeta,
+                                                               semanticInfoList);
             }
         }
     }
@@ -1186,17 +1192,17 @@ int Analyze_Exp(ParserNode_I nodeIndex){
             //        which is defined in scope -1 (impossible to be found)
             reportErrorFormat(node->lineNum, UndefinedVariable, "Undefined variable \"%s\"", GET_CHILD_NODE(nodeIndex, 0)->ID);
             //make an empty semantic info to let the analysis can continue
-            node->semanticInfo = SemanticInfo_createLvalue(SVT_Int ,NULL, INVALID_SCOPE, semanticInfoList);
+            node->semanticInfo = SemanticInfo_createLvalue(SVT_Int, NULL, semanticInfoList);
         }
         else if(record->type != ST_Variable){
             reportErrorFormat(node->lineNum, VariableNameRedefinition, "Name  \"%s\" is defined and can not be a Variable", GET_CHILD_NODE(nodeIndex, 0)->ID);
             //make an empty semantic info to let the analysis can continue
-            node->semanticInfo = SemanticInfo_createLvalue(SVT_Int ,NULL, INVALID_SCOPE, semanticInfoList);
+            node->semanticInfo = SemanticInfo_createLvalue(SVT_Int, NULL, semanticInfoList);
         }
         else{
             SymbolInfo_Variable_t variableInfo = (SymbolInfo_Variable_t)record->info;
             //make an empty semantic info to let the analysis can continue
-            node->semanticInfo = SemanticInfo_createLvalue(variableInfo->type, variableInfo->meta, record->scope, semanticInfoList);
+            node->semanticInfo = SemanticInfo_createLvalue(variableInfo->type, variableInfo->meta, semanticInfoList);
         }
 
     }

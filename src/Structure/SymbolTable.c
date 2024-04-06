@@ -25,11 +25,16 @@ void SymbolInfo_DebugHelper_getTypeString(Symbol_Value_Type e, void* meta, char 
 /// SymbolValue
 ////////////////////////////////////////
 
-int SymbolValue_getSize(Symbol_Value_Type type) {
+int SymbolValue_getSize(Symbol_Value_Type type, SymbolInfo_t meta) {
     switch (type) {
         case SVT_Int:
         case SVT_Float:
             return 4;
+        case SVT_Struct:
+            return ((SymbolInfo_Struct_t)meta)->size;
+        case SVT_Array:
+            return ((SymbolInfo_Array_t)meta)->dimension * SymbolValue_getSize(((SymbolInfo_Array_t)meta)->elementType,
+                                                                               ((SymbolInfo_Array_t)meta)->elementMeta);
         default:
             return 0;
     }
@@ -45,7 +50,9 @@ SymbolTable_t SymbolTable_create() {
     table->table = SimpleHashTable_createWithSize(sizeof(SymbolRecord), NULL, NULL, SYMBOL_TABLE_HASH_TABLE_SIZE);
     table->nextScopeID = 0;
     table->scopeStack = SimpleArray_create(sizeof(int));
-    memset(table->scopePrefix, 0, sizeof(table->scopePrefix));
+    table->currentScope = 0;
+    table->nextVarID = 0;
+    table->nextLabelID = 0;
     SymbolTable_enterScope(table);
     return table;
 }
@@ -58,26 +65,23 @@ void SymbolTable_destroy(void* tableToDestroy){
 }
 
 void SymbolTable_enterScope(SymbolTable_t table) {
-    int currentScope = table->nextScopeID;
+    table->currentScope = table->nextScopeID;
     SimpleArray_pushBack(table->scopeStack, &table->nextScopeID);
-    sprintf(table->scopePrefix, "+%d_", currentScope);
     table->nextScopeID++;
 }
 
 void SymbolTable_leaveScope(SymbolTable_t table) {
     assert(table->scopeStack->num > 0);
     SimpleArray_popBack(table->scopeStack, NULL);
-    int currentScope = *(int *) SimpleArray_back(table->scopeStack);
-    sprintf(table->scopePrefix, "+%d_", currentScope);
+    table->currentScope = *(int *) SimpleArray_back(table->scopeStack);
 }
 
 int SymbolTable_getScope(SymbolTable_t table) {
     return *(int *) SimpleArray_back(table->scopeStack);
 }
 
-char *SymbolTable_generateName(SymbolTable_t table, char *name, char *buffer, int bufferSize) {
-    snprintf(buffer, bufferSize, "%s%s", table->scopePrefix, name);
-    return buffer + strlen(table->scopePrefix);
+void SymbolTable_generateName(SymbolTable_t table, char *name, char *buffer, int bufferSize) {
+    snprintf(buffer, bufferSize, "+%d_%s", table->currentScope, name);
 }
 
 SymbolDefineStatus SymbolTable_lookupRecord(SymbolTable_t table, char *name, SymbolRecord_t *outRecord) {
@@ -169,23 +173,21 @@ int SymbolTable_insertRecord(SymbolTable_t table, char *name, SymbolRecord_t rec
 #endif
 }
 
-SymbolTable_Error SymbolTable_createVariableByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info)
+void SymbolTable_createVariableByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info)
 {
     outRecord->type = ST_Variable;
     outRecord->info = info;
-    return SE_Success;
+    ((SymbolInfo_Variable_t)info)->varID = SymbolTable_getNextVarID(table);
 }
 
-SymbolTable_Error SymbolTable_createFunctionByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info) {
+void SymbolTable_createFunctionByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info) {
     outRecord->type = ST_Function;
     outRecord->info = info;
-    return SE_Success;
 }
 
-SymbolTable_Error SymbolTable_createStructByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info) {
+void SymbolTable_createStructByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info) {
     outRecord->type = ST_Struct;
     outRecord->info = info;
-    return SE_Success;
 }
 
 ////////////////////////////////////////
@@ -223,21 +225,29 @@ SymbolInfo_Variable_t SymbolInfo_Variable_createBaked(Symbol_Value_Type type, Sy
             info = (SymbolInfo_Variable_Raw)malloc(sizeof(SymbolInfo_Variable));
             ((SymbolInfo_Variable_Raw)info)->type = SVT_Int;
             ((SymbolInfo_Variable_Raw)info)->meta = NULL;
+            ((SymbolInfo_Variable_Raw)info)->isParam = 0;
+            ((SymbolInfo_Variable_Raw)info)->varID = -1;
             return info;
         case SVT_Float:
             info = (SymbolInfo_Variable_Raw)malloc(sizeof(SymbolInfo_Variable));
             ((SymbolInfo_Variable_Raw)info)->type = SVT_Float;
             ((SymbolInfo_Variable_Raw)info)->meta = NULL;
+            ((SymbolInfo_Variable_Raw)info)->isParam = 0;
+            ((SymbolInfo_Variable_Raw)info)->varID = -1;
             return info;
         case SVT_Struct:
             info = (SymbolInfo_Variable_Raw)malloc(sizeof(SymbolInfo_Variable));
             ((SymbolInfo_Variable_Raw)info)->type = SVT_Struct;
             ((SymbolInfo_Variable_Raw)info)->meta = meta;
+            ((SymbolInfo_Variable_Raw)info)->isParam = 0;
+            ((SymbolInfo_Variable_Raw)info)->varID = -1;
             return info;
         case SVT_Array:
             info = (SymbolInfo_Variable_Raw)malloc(sizeof(SymbolInfo_Variable));
             ((SymbolInfo_Variable_Raw)info)->type = SVT_Array;
             ((SymbolInfo_Variable_Raw)info)->meta = meta;
+            ((SymbolInfo_Variable_Raw)info)->isParam = 0;
+            ((SymbolInfo_Variable_Raw)info)->varID = -1;
             return info;
         default:
             return NULL;
@@ -254,19 +264,25 @@ void SymbolInfo_Variable_destroy(SymbolInfo_Variable_t info) {
 }
 
 SymbolInfo_Array_t SymbolInfo_Array_createBaked(Symbol_Value_Type elementType, SymbolInfo_t elementStructInfo, int dimensions[], int dimensionCount){
-    if(elementType == SVT_Array)
-        return NULL;
     SymbolInfo_Array_Raw info = (SymbolInfo_Array_Raw)malloc(sizeof(SymbolInfo_Array));
-    info->elementType = elementType;
-    memcpy(info->dimensions, dimensions, sizeof(int) * dimensionCount);
     info->dimensionCount = dimensionCount;
-    info->elementStructInfo = elementStructInfo;
+    info->dimension = dimensions[0];
+    if(dimensionCount > 1){
+        info->elementType = SVT_Array;
+        info->elementMeta = SymbolInfo_Array_createBaked(elementType, elementStructInfo, dimensions+1, dimensionCount-1);
+    }else{
+        info->elementType = elementType;
+        info->elementMeta = elementStructInfo;
+    }
     return info;
 }
 
 void SymbolInfo_Array_destroy(SymbolInfo_Array_t info) {
     if(info == NULL)
         return;
+    if(info->elementType == SVT_Array){
+        SymbolInfo_Array_destroy(info->elementMeta);
+    }
     free(info);
 }
 
@@ -282,17 +298,15 @@ SymbolInfo_Function_createBaked(Symbol_Value_Type returnType, SymbolInfo_t retur
     for(int i = 0; i < parameterCount; i++){
         rawInfo->parameters[i] = SymbolInfo_Parameter_createBaked(parameterTypes[i], parameterNames[i], parametersMeta[i]);
     }
-    rawInfo->offset = INVALID_OFFSET;
+    rawInfo->isDefined = 0;
     return rawInfo;
 }
 
 void SymbolInfo_Function_destroy(SymbolInfo_Function_t info) {
     if(info == NULL)
         return;
-#ifdef SYMBOL_TABLE_FUNCTION_NAME
     if(info->functionName != NULL)
         free(info->functionName);
-#endif
     if(info->returnType == SVT_Array){
         SymbolInfo_Array_destroy(info->returnTypeMeta);
     }
@@ -400,6 +414,8 @@ int SymbolInfo_Struct_checkMemberName(SymbolInfo_Struct_t info, char* memberName
 void SymbolInfo_Struct_insertMember(SymbolInfo_Struct_t info, SymbolInfo_t memberInfo){
     info->members[info->memberCount] = memberInfo;
     info->memberCount++;
+    ((SymbolInfo_Member_t) memberInfo)->offset = info->size;
+    info->size += SymbolValue_getSize(((SymbolInfo_Member_t) memberInfo)->memberType, ((SymbolInfo_Member_t) memberInfo)->memberMeta);
 }
 
 
@@ -474,13 +490,17 @@ int SymbolRecord_isSymbolDefined(SymbolRecord_t record) {
             return 1;
         case ST_Function: {
             SymbolInfo_Function_t functionInfo = (SymbolInfo_Function_t) record->info;
-            return functionInfo->offset != INVALID_OFFSET;
+            return functionInfo->isDefined;
         }
         case ST_Struct:
             return 1;
         default:
             return 0;
     }
+}
+
+int SymbolTable_getNextVarID(SymbolTable_t table) {
+    return table->nextVarID++;
 }
 
 void SymbolInfo_Variable_printDebug(SymbolInfo_t variableInfo, char *buffer, int size) {
@@ -496,7 +516,7 @@ void SymbolInfo_Variable_printDebug(SymbolInfo_t variableInfo, char *buffer, int
         SymbolInfo_Array_t arrayInfo = info->meta;
         if(arrayInfo->elementType == SVT_Struct){
             char structDefBuffer[256];
-            SymbolInfo_Struct_printDebug(arrayInfo->elementStructInfo, structDefBuffer, sizeof(structDefBuffer));
+            SymbolInfo_Struct_printDebug(arrayInfo->elementMeta, structDefBuffer, sizeof(structDefBuffer));
             snprintf(buffer+strlen(buffer), size-strlen(buffer), "\n\tArray %s", structDefBuffer);
         }
     }
@@ -584,13 +604,14 @@ void SymbolInfo_DebugHelper_getTypeString(Symbol_Value_Type e, void* meta, char 
             SymbolInfo_Array_t arrayInfo = (SymbolInfo_Array_t) meta;
             char dimBuffer[256];
             char dimListBuffer[256];
-            snprintf(dimBuffer, sizeof(dimBuffer), "[%d]", arrayInfo->dimensions[0]);
-            for (int i = 1; i < arrayInfo->dimensionCount ; i++) {
-                snprintf(dimListBuffer, sizeof(dimListBuffer) - strlen(dimBuffer), "%s[%d]", dimBuffer , arrayInfo->dimensions[i]);
-                strcpy(dimBuffer, dimListBuffer);
+            snprintf(dimBuffer, sizeof(dimBuffer), "[%d]", arrayInfo->dimension);
+            while(arrayInfo->dimensionCount > 1){
+                arrayInfo = arrayInfo->elementMeta;
+                snprintf(dimBuffer, sizeof(dimBuffer), "[%d]", arrayInfo->dimension);
+                snprintf(dimListBuffer+strlen(dimListBuffer), sizeof(dimListBuffer)-strlen(dimListBuffer), "%s", dimBuffer);
             }
             char elementTypeBuffer[256];
-            SymbolInfo_DebugHelper_getTypeString(arrayInfo->elementType, arrayInfo->elementStructInfo, elementTypeBuffer, sizeof(elementTypeBuffer));
+            SymbolInfo_DebugHelper_getTypeString(arrayInfo->elementType, arrayInfo->elementMeta, elementTypeBuffer, sizeof(elementTypeBuffer));
             snprintf(buffer, bufferSize, "%s %s", elementTypeBuffer , dimBuffer);
             break;
         }

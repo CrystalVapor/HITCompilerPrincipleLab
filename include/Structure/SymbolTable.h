@@ -31,7 +31,8 @@
 #include "SimpleArray.h"
 #include "SimpleHashTable.h"
 
-#define INVALID_OFFSET (-1)
+#define INVALID_VAR_ID (-1)
+#define INVALID_LABEL_ID (-1)
 
 ////////////////////////////////////////
 // Enums for SymbolRecord
@@ -46,7 +47,6 @@ typedef enum SymbolDefineStatus_e {
     SDS_ExternalDeclared = 1,       // A symbol is declared and defined in other nextScopeID
     SDS_ExternalDefined = 2,      // A symbol is defined and usable in current nextScopeID
     SDS_Defined = 3,      // A symbol is declared in other nextScopeID
-    SDS_Initialized = 4   // A symbol is defined and initialized
 } SymbolDefineStatus;
 
 /**
@@ -57,22 +57,6 @@ typedef enum SymbolType_e {
     ST_Function = 0b01,
     ST_Struct = 0b10,
 } SymbolType;
-
-////////////////////////////////////////
-// Error Enum for SymbolTable Actions
-////////////////////////////////////////
-
-/**
- * The error code of the symbol table.
- */
-typedef enum {
-    SE_Success = 0,                            // No error
-    SE_UnexpectedNullPointer = -4,       // Unexpected error, always means a NULL SymbolInfo is baked
-    SE_UnexpectedSymbolValueType = -5,   // Unexpected error, always means a VariableInfo with unexpected value type(e.g. SVT_Void) is baked
-    SE_StructNotFound = -6,              // The struct not found
-    SE_StructNotDefined = -7,            // The struct is not defined
-}SymbolTable_Error;
-
 
 ////////////////////////////////////////
 // Types for Symbol's value
@@ -92,7 +76,7 @@ typedef enum Symbol_Value_Type_e {
 /**
  * The size of the symbol value.
  */
-int SymbolValue_getSize(Symbol_Value_Type type);
+int SymbolValue_getSize(Symbol_Value_Type type, void *meta);
 
 ////////////////////////////////////////
 ///SymbolRecord
@@ -120,7 +104,9 @@ typedef struct SymbolTable_s {
     SimpleHashTable_t table;    // hash table for symbol records, key is full name of symbol, records stored as flat struct SymbolRecord
     int nextScopeID;            // next scope ID that will be used
     SimpleArray_t scopeStack;   // stack of scope IDs
-    char scopePrefix[64];       // prefix of the current scope
+    int currentScope;     // current scopeID that is being used
+    int nextVarID;        // next variable ID that will be used
+    int nextLabelID;      // next label ID that will be used
 } SymbolTable;
 typedef SymbolTable* SymbolTable_t;
 
@@ -163,7 +149,7 @@ int SymbolTable_getScope(SymbolTable_t table);
  * @param name The name.
  * @return The name without the nextScopeID prefix(a pointer to the middle of buffer).
  */
-char* SymbolTable_generateName(SymbolTable_t table, char* name, char* buffer, int bufferSize);
+void SymbolTable_generateName(SymbolTable_t table, char* name, char* buffer, int bufferSize);
 
 /**
  * Lookup a symbol in the symbol table.
@@ -204,12 +190,14 @@ int SymbolTable_insertRecord(SymbolTable_t table, char* name, SymbolRecord_t rec
 
 /**
  * Creates a blank variable record with valid function info, the meta need to be well-baked.
+ * will also allocate a new variable ID for the variable.
+ * ID can be accessed by SymbolRecord->info->varID
  * @param table     The symbol table
  * @param outRecord The output record, should be a pointer to valid memory of SymbolRecord
  * @param info      The meta data of the variable
  * @return SE_Success if success, failed otherwise
  */
-SymbolTable_Error SymbolTable_createVariableByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info);
+void SymbolTable_createVariableByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info);
 
 /**
  * Creates a blank function record with valid function info, the meta need to be well-baked.
@@ -218,7 +206,7 @@ SymbolTable_Error SymbolTable_createVariableByInfo(SymbolTable_t table, SymbolRe
  * @param info      The meta data of the function
  * @return SE_Success if success, failed otherwise
  */
-SymbolTable_Error SymbolTable_createFunctionByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info);
+void SymbolTable_createFunctionByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info);
 
 /**
  * Creates a blank struct record with valid struct info, the meta need to be well-baked.
@@ -227,7 +215,21 @@ SymbolTable_Error SymbolTable_createFunctionByInfo(SymbolTable_t table, SymbolRe
  * @param info      The meta data of the struct
  * @return SE_Success if success, failed otherwise
  */
-SymbolTable_Error SymbolTable_createStructByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info);
+void SymbolTable_createStructByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info);
+
+int SymbolTable_getCurrentVarID(SymbolTable_t table);
+
+int SymbolTable_getCurrentLabelID(SymbolTable_t table);
+
+int SymbolTable_getNextVarID(SymbolTable_t table);
+
+char* SymbolTable_generateNextLabelName(SymbolTable_t table);
+
+int SymbolTable_generateTempVariable(SymbolTable_t table, char* buffer, int bufferSize);
+
+int SymbolTable_generateParamVariable(SymbolTable_t table, int paramID, char* buffer, int bufferSize);
+
+int SymbolTable_generateLabel(SymbolTable_t table, char* buffer, int bufferSize);
 
 ////////////////////////////////////////
 /// SymbolInfo
@@ -258,9 +260,9 @@ void SymbolInfo_Variable_destroy(SymbolInfo_Variable_t info);
 
         typedef struct {
             Symbol_Value_Type elementType;
-            SymbolInfo_t elementStructInfo;
+            SymbolInfo_t elementMeta;
             int dimensionCount;
-            int dimensions[16];
+            int dimension;
         } SymbolInfo_Array;
         typedef SymbolInfo_Array* SymbolInfo_Array_t;
         typedef SymbolInfo_Array* SymbolInfo_Array_Raw;
@@ -287,7 +289,7 @@ typedef struct {
     char* functionName;
     int parameterCount;
     SymbolInfo_t* parameters;
-    int offset;
+    int isDefined;
     int firstDeclaredLine;
 } SymbolInfo_Function;
 typedef SymbolInfo_Function* SymbolInfo_Function_t;
@@ -359,6 +361,7 @@ typedef struct {
 #endif
     int memberCount;
     SymbolInfo_t* members;
+    int size;
 } SymbolInfo_Struct;
 typedef SymbolInfo_Struct* SymbolInfo_Struct_t;
 typedef SymbolInfo_Struct* SymbolInfo_Struct_Raw;
@@ -408,8 +411,9 @@ void SymbolInfo_Struct_setName(SymbolInfo_Struct_t info, char* name);
 
         typedef struct {
             Symbol_Value_Type memberType;
-            char* memberName;
             SymbolInfo_t memberMeta;
+            char* memberName;
+            int offset;
         } SymbolInfo_Member;
         typedef SymbolInfo_Member* SymbolInfo_Member_t;
         typedef SymbolInfo_Member* SymbolInfo_Member_Raw;
