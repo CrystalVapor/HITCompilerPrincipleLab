@@ -138,17 +138,9 @@ int SymbolInfo_isStructTypeMatched(SymbolInfo_Struct_t a, SymbolInfo_Struct_t b)
 }
 
 int SymbolInfo_isArrayTypeMatched(SymbolInfo_Array_t a, SymbolInfo_Array_t b) {
-    if(a->dimensionCount == b->dimensionCount)
-    {
-        if(SymbolInfo_Helper_isTypeMatched(a->elementType,
-                                           a->elementMeta,
-                                           b->elementType,
-                                           b->elementMeta))
-        {
-            return 1;
-        }
-    }
-    return 0;
+    return a->dimensionCount == b->dimensionCount
+        && SymbolInfo_Helper_isTypeMatched(a->elementType, a->elementMeta,
+                                           b->elementType, b->elementMeta);
 }
 
 int SymbolInfo_Helper_isTypeMatched(Symbol_Value_Type aType, SymbolInfo_t aMeta, Symbol_Value_Type bType,

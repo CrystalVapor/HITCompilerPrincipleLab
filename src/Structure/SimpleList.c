@@ -11,7 +11,7 @@ SimpleList_t SimpleList_create() {
     newList->head = NULL;
     newList->tail = NULL;
     newList->size = 0;
-    return NULL;
+    return newList;
 }
 
 SimpleListNode_t SimpleList_push_back(SimpleList_t list, void *data) {
@@ -139,4 +139,18 @@ SimpleList_t SimpleList_append(SimpleList_t list1, SimpleList_t list2) {
     list1->size += list2->size;
     free(list2);
     return list1;
+}
+
+SimpleList_t SimpleList_destroy(SimpleList_t list, void (*destroyData)(void *)) {
+    SimpleListNode_t node = list->head;
+    while (node != NULL) {
+        SimpleListNode_t next = node->next;
+        if (destroyData != NULL) {
+            destroyData(node->data);
+        }
+        free(node);
+        node = next;
+    }
+    free(list);
+    return NULL;
 }

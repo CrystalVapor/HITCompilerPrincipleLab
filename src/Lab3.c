@@ -9,7 +9,10 @@
 #include "InterCodeGenerator.h"
 
 #include "Lab3.h"
+#include "Structure/SymbolTable.h"
 
+
+void registerPredefinedFunctions(SymbolTable_t symbolTable);
 
 int main(int argc, char** argv){
     if(argc<2)
@@ -43,7 +46,11 @@ int main(int argc, char** argv){
         return ret;
     }
 
-    semanticAnalyze(getParserTreeRoot());
+    SymbolTable_t symbolTable = SymbolTable_create();
+
+    registerPredefinedFunctions(symbolTable);
+
+    semanticAnalyze(getParserTreeRoot(), symbolTable);
 
     ret = hasError();
     if(ret) {
@@ -55,11 +62,41 @@ int main(int argc, char** argv){
         return ret;
     }
 
-   /* generateInterCode(getParserTreeRoot(), stdout);
 
-    generateInterCode_End();*/
+
+    InterCodeHandle codeHandle =  generateInterCode(getParserTreeRoot(), stdout, symbolTable);
+
+    generateInterCode_End();
+
+
     semanticAnalyze_End();
+    SymbolTable_destroy(symbolTable);
     freeParserNodes();
 
     return ret;
+}
+
+void registerPredefinedFunctions(SymbolTable_t symbolTable) {
+    SymbolInfo_Function_t readFunc = SymbolInfo_Function_createBaked(SVT_Int,
+                                                                     NULL,
+                                                                     NULL,
+                                                                     NULL,
+                                                                     NULL,
+                                                                     0);
+    Symbol_Value_Type writeFuncParamType[1] = {SVT_Int};
+    char* writeFuncParamName[1] = {"value"};
+    SymbolInfo_t writeFuncParamInfo[1] = {NULL};
+    SymbolInfo_Function_t writeFunc = SymbolInfo_Function_createBaked(SVT_Int,
+                                                                      NULL,
+                                                                      writeFuncParamType,
+                                                                      writeFuncParamName,
+                                                                      writeFuncParamInfo,
+                                                                      1);
+    readFunc->isDefined = 1;
+    writeFunc->isDefined = 1;
+    SymbolRecord record;
+    SymbolTable_createFunctionByInfo(symbolTable, &record, readFunc);
+    SymbolTable_insertRecord(symbolTable, "read", &record);
+    SymbolTable_createFunctionByInfo(symbolTable, &record, writeFunc);
+    SymbolTable_insertRecord(symbolTable, "write", &record);
 }

@@ -40,7 +40,9 @@ int main(int argc, char** argv) {
         return ret;
     }
 
-    semanticAnalyze(getParserTreeRoot());
+    SymbolTable_t symbolTable = SymbolTable_create();
+
+    semanticAnalyze(getParserTreeRoot(), symbolTable);
 
     ret = hasError();
     if(ret) {
@@ -48,12 +50,9 @@ int main(int argc, char** argv) {
         resetErrorReporter();
     }
 
-
-
     semanticAnalyze_End();
+    SymbolTable_destroy(symbolTable);
     freeParserNodes();
-
-    //testSymbolTable();
 
     return ret;
 }

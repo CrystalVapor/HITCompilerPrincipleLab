@@ -87,7 +87,6 @@ typedef void* SymbolInfo_t;
 typedef struct {
     SymbolType type;
     SymbolInfo_t info;
-    int scope;
 } SymbolRecord;
 typedef SymbolRecord* SymbolRecord_t;
 
@@ -217,19 +216,11 @@ void SymbolTable_createFunctionByInfo(SymbolTable_t table, SymbolRecord *outReco
  */
 void SymbolTable_createStructByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info);
 
-int SymbolTable_getCurrentVarID(SymbolTable_t table);
-
-int SymbolTable_getCurrentLabelID(SymbolTable_t table);
-
 int SymbolTable_getNextVarID(SymbolTable_t table);
 
-char* SymbolTable_generateNextLabelName(SymbolTable_t table);
+void SymbolTable_generateNextLabelName(SymbolTable_t table, char* buffer, int bufferSize);
 
-int SymbolTable_generateTempVariable(SymbolTable_t table, char* buffer, int bufferSize);
-
-int SymbolTable_generateParamVariable(SymbolTable_t table, int paramID, char* buffer, int bufferSize);
-
-int SymbolTable_generateLabel(SymbolTable_t table, char* buffer, int bufferSize);
+void SymbolTable_generateNextLabelNameWithSuffix(SymbolTable_t table, char* buffer, int bufferSize, char* suffix);
 
 ////////////////////////////////////////
 /// SymbolInfo
@@ -238,7 +229,7 @@ int SymbolTable_generateLabel(SymbolTable_t table, char* buffer, int bufferSize)
 typedef struct {
     Symbol_Value_Type type;
     SymbolInfo_t meta;
-    char isParam;
+    char bIsParam;
     int varID;
 } SymbolInfo_Variable;
 typedef SymbolInfo_Variable* SymbolInfo_Variable_t;

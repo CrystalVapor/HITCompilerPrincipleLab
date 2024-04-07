@@ -16,9 +16,6 @@
 
 int semanticErrors = 0;
 
-SemanticInfo intLiteralInfo;
-SemanticInfo floatLiteralInfo;
-
 SymbolTable_t symbolTable;
 SimpleArray_t semanticInfoList;
 
@@ -259,10 +256,6 @@ void semanticAnalyze_End(){
     SimpleArray_destroy(functionForwardDeclarationList, NULL);
 }
 
-SymbolTable_t semanticAnalyze_getSymbolTable() {
-    return symbolTable;
-}
-
 int Analyze_Program(ParserNode_I nodeIndex){
     if(isChildrenMatchRule(nodeIndex, 1, EXT_DEF_LIST)){
         Analyze_ExtDefList(GET_CHILD(nodeIndex, 0));
@@ -374,6 +367,10 @@ void Analyze_HandleFunctionDefintion(ParserNode_I nodeIndex) {
                                                                                  parameter->parameterMeta);
                     parameterRecord.type = ST_Variable;
                     parameterRecord.info = info;
+                    // these two line is for intermediate code generation
+                    // to let us know the variable is a parameter
+                    info->bIsParam = 1;
+                    info->varID = i+1;
 
                     SymbolTable_insertRecord(symbolTable, parameter->parameterName, &parameterRecord);
                 }
@@ -777,11 +774,13 @@ int Analyze_Dec_Variable(ParserNode_I nodeIndex){
             if(dimensionCount == 0){
                 SymbolInfo_Variable_t variable = SymbolInfo_Variable_createBaked(type,typeMeta);
                 GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Int, variable, semanticInfoList);
+                GET_CHILD_NODE(nodeIndex,0)->semanticInfo = GET_NODE(nodeIndex)->semanticInfo;
             }
             else {
                 SymbolInfo_Array_t arrayInfo = SymbolInfo_Array_createBaked(type, typeMeta, dimensions, dimensionCount);
                 SymbolInfo_Variable_t variable = SymbolInfo_Variable_createBaked(SVT_Array, arrayInfo);
                 GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Int, variable, semanticInfoList);
+                GET_CHILD_NODE(nodeIndex,0)->semanticInfo = GET_NODE(nodeIndex)->semanticInfo;
                 Analyze_clearCurrentDimension();
             }
         }
@@ -804,11 +803,13 @@ int Analyze_Dec_Variable(ParserNode_I nodeIndex){
             if(dimensionCount == 0){
                 variable = SymbolInfo_Variable_createBaked(type,typeMeta);
                 GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Int, variable, semanticInfoList);
+                GET_CHILD_NODE(nodeIndex,0)->semanticInfo = GET_NODE(nodeIndex)->semanticInfo;
             }
             else {
                 SymbolInfo_Array_t arrayInfo = SymbolInfo_Array_createBaked(type, typeMeta, dimensions, dimensionCount);
                 variable = SymbolInfo_Variable_createBaked(SVT_Array, arrayInfo);
                 GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Int, variable, semanticInfoList);
+                GET_CHILD_NODE(nodeIndex,0)->semanticInfo = GET_NODE(nodeIndex)->semanticInfo;
                 Analyze_clearCurrentDimension();
             }
             if(!SymbolInfo_Helper_isTypeMatched(variable->type, variable->meta,
@@ -1203,6 +1204,7 @@ int Analyze_Exp(ParserNode_I nodeIndex){
             SymbolInfo_Variable_t variableInfo = (SymbolInfo_Variable_t)record->info;
             //make an empty semantic info to let the analysis can continue
             node->semanticInfo = SemanticInfo_createLvalue(variableInfo->type, variableInfo->meta, semanticInfoList);
+            node->semanticInfo->variableInfo = variableInfo;
         }
 
     }

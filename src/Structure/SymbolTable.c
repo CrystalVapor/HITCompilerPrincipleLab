@@ -145,7 +145,6 @@ SymbolTable_lookupRecordInScope(SymbolTable_t table, char *name, int scope, Symb
 }
 
 int SymbolTable_insertRecord(SymbolTable_t table, char *name, SymbolRecord_t record) {
-    record->scope = SymbolTable_getScope(table);
     char fullNameBuffer[256];
     SymbolTable_generateName(table, name, fullNameBuffer, sizeof(fullNameBuffer));
 #ifdef SYMBOL_TABLE_STRUCT_NAME
@@ -225,28 +224,28 @@ SymbolInfo_Variable_t SymbolInfo_Variable_createBaked(Symbol_Value_Type type, Sy
             info = (SymbolInfo_Variable_Raw)malloc(sizeof(SymbolInfo_Variable));
             ((SymbolInfo_Variable_Raw)info)->type = SVT_Int;
             ((SymbolInfo_Variable_Raw)info)->meta = NULL;
-            ((SymbolInfo_Variable_Raw)info)->isParam = 0;
+            ((SymbolInfo_Variable_Raw)info)->bIsParam = 0;
             ((SymbolInfo_Variable_Raw)info)->varID = -1;
             return info;
         case SVT_Float:
             info = (SymbolInfo_Variable_Raw)malloc(sizeof(SymbolInfo_Variable));
             ((SymbolInfo_Variable_Raw)info)->type = SVT_Float;
             ((SymbolInfo_Variable_Raw)info)->meta = NULL;
-            ((SymbolInfo_Variable_Raw)info)->isParam = 0;
+            ((SymbolInfo_Variable_Raw)info)->bIsParam = 0;
             ((SymbolInfo_Variable_Raw)info)->varID = -1;
             return info;
         case SVT_Struct:
             info = (SymbolInfo_Variable_Raw)malloc(sizeof(SymbolInfo_Variable));
             ((SymbolInfo_Variable_Raw)info)->type = SVT_Struct;
             ((SymbolInfo_Variable_Raw)info)->meta = meta;
-            ((SymbolInfo_Variable_Raw)info)->isParam = 0;
+            ((SymbolInfo_Variable_Raw)info)->bIsParam = 0;
             ((SymbolInfo_Variable_Raw)info)->varID = -1;
             return info;
         case SVT_Array:
             info = (SymbolInfo_Variable_Raw)malloc(sizeof(SymbolInfo_Variable));
             ((SymbolInfo_Variable_Raw)info)->type = SVT_Array;
             ((SymbolInfo_Variable_Raw)info)->meta = meta;
-            ((SymbolInfo_Variable_Raw)info)->isParam = 0;
+            ((SymbolInfo_Variable_Raw)info)->bIsParam = 0;
             ((SymbolInfo_Variable_Raw)info)->varID = -1;
             return info;
         default:
@@ -501,6 +500,14 @@ int SymbolRecord_isSymbolDefined(SymbolRecord_t record) {
 
 int SymbolTable_getNextVarID(SymbolTable_t table) {
     return table->nextVarID++;
+}
+
+void SymbolTable_generateNextLabelName(SymbolTable_t table, char* buffer, int bufferSize){
+    SymbolTable_generateNextLabelNameWithSuffix(table, buffer, bufferSize, "");
+}
+
+void SymbolTable_generateNextLabelNameWithSuffix(SymbolTable_t table, char* buffer, int bufferSize, char* suffix){
+    snprintf(buffer, bufferSize, "label#%d%s", table->nextLabelID++, suffix);
 }
 
 void SymbolInfo_Variable_printDebug(SymbolInfo_t variableInfo, char *buffer, int size) {

@@ -21,6 +21,9 @@ typedef struct SemanticInfo_s{
 
     // Semantic information
     int isLValue;
+    SymbolInfo_Variable_t variableInfo;
+    // used for intercode generate
+
 }SemanticInfo;
 typedef SemanticInfo* SemanticInfo_t;
 
