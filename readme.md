@@ -29,23 +29,26 @@
 Lab1:
 ```bash
 cd CmakeBuild
-cmake Lab1
 make Lab1
 ```
 
 Lab2:
 ```bash
 cd CmakeBuild
-cmake Lab2
 make Lab2
 ```
 
 Lab3:
 ```bash
 cd CmakeBuild
-cmake Lab3
 make Lab3
 ```
+
+项目中的cmake文件已经配置好，可以直接使用cmake进行编译，如果相关文件损坏，请使用：
+```bash
+cmake CmakeBuild
+```
+修复相关make文件
 
 如果未安装cmake，可以直接使用make命令进行编译
 
