@@ -1,0 +1,2 @@
+/usr/bin/ar qc lib/libSimpleContainers.a CMakeFiles/SimpleContainers.dir/src/Structure/SimpleArray.c.o CMakeFiles/SimpleContainers.dir/src/Structure/SimpleHashTable.c.o CMakeFiles/SimpleContainers.dir/src/Structure/SimpleList.c.o
+/usr/bin/ranlib lib/libSimpleContainers.a

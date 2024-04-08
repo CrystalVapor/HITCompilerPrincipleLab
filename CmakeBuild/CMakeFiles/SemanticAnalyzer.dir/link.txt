@@ -1,0 +1,2 @@
+/usr/bin/ar qc lib/libSemanticAnalyzer.a CMakeFiles/SemanticAnalyzer.dir/src/Structure/SymbolTable.c.o CMakeFiles/SemanticAnalyzer.dir/src/Structure/SemanticInfo.c.o CMakeFiles/SemanticAnalyzer.dir/src/SemanticAnalyzer.c.o
+/usr/bin/ranlib lib/libSemanticAnalyzer.a

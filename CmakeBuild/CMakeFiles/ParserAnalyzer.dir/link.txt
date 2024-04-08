@@ -1,0 +1,2 @@
+/usr/bin/ar qc lib/libParserAnalyzer.a CMakeFiles/ParserAnalyzer.dir/src/Structure/ParserNodes.c.o CMakeFiles/ParserAnalyzer.dir/src/Structure/TokenName.c.o
+/usr/bin/ranlib lib/libParserAnalyzer.a

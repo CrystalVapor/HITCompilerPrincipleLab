@@ -1,0 +1,2 @@
+/usr/bin/ar qc lib/libSimpleHashTable.a CMakeFiles/SimpleHashTable.dir/src/Structure/SimpleHashTable.c.o CMakeFiles/SimpleHashTable.dir/src/Structure/SimpleArray.c.o
+/usr/bin/ranlib lib/libSimpleHashTable.a
