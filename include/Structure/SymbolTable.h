@@ -229,7 +229,6 @@ void SymbolTable_generateNextLabelNameWithSuffix(SymbolTable_t table, char* buff
 typedef struct {
     Symbol_Value_Type type;
     SymbolInfo_t meta;
-    char bIsParam;
     int varID;
 } SymbolInfo_Variable;
 typedef SymbolInfo_Variable* SymbolInfo_Variable_t;

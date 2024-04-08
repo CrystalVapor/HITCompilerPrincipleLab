@@ -176,7 +176,6 @@ void SymbolTable_createVariableByInfo(SymbolTable_t table, SymbolRecord *outReco
 {
     outRecord->type = ST_Variable;
     outRecord->info = info;
-    ((SymbolInfo_Variable_t)info)->varID = SymbolTable_getNextVarID(table);
 }
 
 void SymbolTable_createFunctionByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info) {
@@ -224,29 +223,25 @@ SymbolInfo_Variable_t SymbolInfo_Variable_createBaked(Symbol_Value_Type type, Sy
             info = (SymbolInfo_Variable_Raw)malloc(sizeof(SymbolInfo_Variable));
             ((SymbolInfo_Variable_Raw)info)->type = SVT_Int;
             ((SymbolInfo_Variable_Raw)info)->meta = NULL;
-            ((SymbolInfo_Variable_Raw)info)->bIsParam = 0;
-            ((SymbolInfo_Variable_Raw)info)->varID = -1;
+            ((SymbolInfo_Variable_Raw)info)->varID = 0;
             return info;
         case SVT_Float:
             info = (SymbolInfo_Variable_Raw)malloc(sizeof(SymbolInfo_Variable));
             ((SymbolInfo_Variable_Raw)info)->type = SVT_Float;
             ((SymbolInfo_Variable_Raw)info)->meta = NULL;
-            ((SymbolInfo_Variable_Raw)info)->bIsParam = 0;
-            ((SymbolInfo_Variable_Raw)info)->varID = -1;
+            ((SymbolInfo_Variable_Raw)info)->varID = 0;
             return info;
         case SVT_Struct:
             info = (SymbolInfo_Variable_Raw)malloc(sizeof(SymbolInfo_Variable));
             ((SymbolInfo_Variable_Raw)info)->type = SVT_Struct;
             ((SymbolInfo_Variable_Raw)info)->meta = meta;
-            ((SymbolInfo_Variable_Raw)info)->bIsParam = 0;
-            ((SymbolInfo_Variable_Raw)info)->varID = -1;
+            ((SymbolInfo_Variable_Raw)info)->varID = 0;
             return info;
         case SVT_Array:
             info = (SymbolInfo_Variable_Raw)malloc(sizeof(SymbolInfo_Variable));
             ((SymbolInfo_Variable_Raw)info)->type = SVT_Array;
             ((SymbolInfo_Variable_Raw)info)->meta = meta;
-            ((SymbolInfo_Variable_Raw)info)->bIsParam = 0;
-            ((SymbolInfo_Variable_Raw)info)->varID = -1;
+            ((SymbolInfo_Variable_Raw)info)->varID = 0;
             return info;
         default:
             return NULL;

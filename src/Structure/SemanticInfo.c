@@ -16,7 +16,7 @@ SemanticInfo_createLvalue(Symbol_Value_Type valueType, SymbolInfo_t valueInfo, S
     SemanticInfo_t semanticInfo = (SemanticInfo_t)malloc(sizeof(SemanticInfo));
     semanticInfo->isLValue = 1;
     semanticInfo->valueType = valueType;
-    semanticInfo->valueInfo = valueInfo;
+    semanticInfo->valueTypeMeta = valueInfo;
     SimpleArray_pushBack(semanticInfoList, &semanticInfo);
     return semanticInfo;
 }
@@ -25,7 +25,7 @@ SemanticInfo_t SemanticInfo_createRvalue(Symbol_Value_Type valueType, SymbolInfo
     SemanticInfo_t semanticInfo = (SemanticInfo_t)malloc(sizeof(SemanticInfo));
     semanticInfo->isLValue = 0;
     semanticInfo->valueType = valueType;
-    semanticInfo->valueInfo = valueInfo;
+    semanticInfo->valueTypeMeta = valueInfo;
     SimpleArray_pushBack(semanticInfoList, &semanticInfo);
     return semanticInfo;
 }
@@ -33,7 +33,7 @@ SemanticInfo_t SemanticInfo_createRvalue(Symbol_Value_Type valueType, SymbolInfo
 SemanticInfo_t SemanticInfo_makeRvalue(SemanticInfo_t semanticInfo, SimpleArray_t semanticInfoList){
     if(semanticInfo->isLValue)
     {
-        return SemanticInfo_createRvalue(semanticInfo->valueType, semanticInfo->valueInfo, semanticInfoList);
+        return SemanticInfo_createRvalue(semanticInfo->valueType, semanticInfo->valueTypeMeta, semanticInfoList);
     }
     return semanticInfo;
 }
@@ -48,7 +48,7 @@ int SemanticInfo_isTypeMatched(SemanticInfo_t a, SemanticInfo_t b) {
     {
         return 0;
     }
-    return SymbolInfo_Helper_isTypeMatched(a->valueType, a->valueInfo, b->valueType, b->valueInfo);
+    return SymbolInfo_Helper_isTypeMatched(a->valueType, a->valueTypeMeta, b->valueType, b->valueTypeMeta);
 }
 
 int SymbolInfo_Function_isReturnTypeMatched(SymbolInfo_Function_t a, SymbolInfo_Function_t b){
@@ -81,7 +81,7 @@ int SemanticInfo_checkValueType(SemanticInfo_t semanticInfo, Symbol_Value_Type t
 }
 
 int SemanticInfo_checkReturnType(SymbolInfo_Function_t functionInfo, SemanticInfo_t semanticInfo){
-    return SymbolInfo_Helper_isTypeMatched(semanticInfo->valueType, semanticInfo->valueInfo,
+    return SymbolInfo_Helper_isTypeMatched(semanticInfo->valueType, semanticInfo->valueTypeMeta,
                                            functionInfo->returnType, functionInfo->returnTypeMeta);
 }
 
@@ -94,7 +94,7 @@ int SemanticInfo_checkParameterList(SymbolInfo_Function_t functionInfo, Semantic
     {
         SymbolInfo_Parameter_t parameter = functionInfo->parameters[i];
         if(!SymbolInfo_Helper_isTypeMatched(parameter->parameterType, parameter->parameterMeta,
-                                            semanticInfos[i]->valueType, semanticInfos[i]->valueInfo))
+                                            semanticInfos[i]->valueType, semanticInfos[i]->valueTypeMeta))
         {
             return 0;
         }
@@ -107,7 +107,7 @@ SymbolInfo_Member_t SemanticInfo_getMemberInfo(SemanticInfo_t semanticInfo, cons
     if(!SemanticInfo_checkValueType(semanticInfo, SVT_Struct)) {
         return NULL;
     }
-    SymbolInfo_Struct_t structInfo = (SymbolInfo_Struct_t)semanticInfo->valueInfo;
+    SymbolInfo_Struct_t structInfo = (SymbolInfo_Struct_t)semanticInfo->valueTypeMeta;
     for(int i = 0; i < structInfo->memberCount; i++) {
         SymbolInfo_Member_t member = structInfo->members[i];
         if(strcmp(member->memberName, memberName) == 0) {

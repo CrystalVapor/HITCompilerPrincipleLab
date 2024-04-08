@@ -222,6 +222,22 @@ void Analyze_HandleFunctionDeclaration(ParserNode_I nodeIndex);
 
 void checkUndefinedFunctions();
 
+SymbolInfo_Variable_t Analyze_Helper_handleExtractVariableInfo(ParserNode_I varDec, Symbol_Value_Type variableType,
+                                                               SymbolInfo_t variableTypeMeta);
+
+void Analyze_Helper_handleVariableDefine(ParserNode_I varDec, SymbolInfo_Variable_t variableInfo, char *variableName);
+
+SymbolInfo_Member_t
+Analyze_handleExtractMember(ParserNode_I varDec, SymbolInfo_Struct_t ownerStruct, Symbol_Value_Type type,
+                            SymbolInfo_t typeMeta, char *memberName);
+
+void
+Analyze_Helper_handleMemberDefine(ParserNode_I varDec, SymbolInfo_Struct_t structInfo, SymbolInfo_Member_t memberInfo,
+                                  char *memberName);
+
+SymbolInfo_Parameter_t Analyze_Helper_handleExtractParameter(ParserNode_I varDec, SymbolInfo_Function_t functionInfo,
+                                                             Symbol_Value_Type paramType, SymbolInfo_t paramTypeMeta);
+
 int semanticAnalyze(ParserNode_I rootNodeIndex, SymbolTable_t inSymbolTable) {
     semanticErrors = 0;
     symbolTable = inSymbolTable;
@@ -294,7 +310,7 @@ int Analyze_ExtDef(ParserNode_I nodeIndex){
 void Analyze_HandleFunctionDefintion(ParserNode_I nodeIndex) {
     Analyze_Specifier(GET_CHILD(nodeIndex, 0));
     Symbol_Value_Type returnType = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueType;
-    SymbolInfo_t returnMeta = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo;
+    SymbolInfo_t returnMeta = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueTypeMeta;
 
     Analyze_FunDec(GET_CHILD(nodeIndex, 1));
     SymbolInfo_Function_t functionInfo = Analyze_getCurrentFunctionInfo();
@@ -369,8 +385,8 @@ void Analyze_HandleFunctionDefintion(ParserNode_I nodeIndex) {
                     parameterRecord.info = info;
                     // these two line is for intermediate code generation
                     // to let us know the variable is a parameter
-                    info->bIsParam = 1;
-                    info->varID = i+1;
+                    // use negative varID to represent parameters
+                    info->varID =  - (i+1);
 
                     SymbolTable_insertRecord(symbolTable, parameter->parameterName, &parameterRecord);
                 }
@@ -394,7 +410,7 @@ void Analyze_HandleFunctionDefintion(ParserNode_I nodeIndex) {
 void Analyze_HandleFunctionDeclaration(ParserNode_I nodeIndex) {
     Analyze_Specifier(GET_CHILD(nodeIndex, 0));
     Symbol_Value_Type returnType = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueType;
-    SymbolInfo_t returnMeta = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo;
+    SymbolInfo_t returnMeta = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueTypeMeta;
 
     Analyze_FunDec(GET_CHILD(nodeIndex, 1));
     SymbolInfo_Function_t functionInfo = Analyze_getCurrentFunctionInfo();
@@ -434,29 +450,54 @@ void Analyze_HandleFunctionDeclaration(ParserNode_I nodeIndex) {
 }
 
 int Analyze_ExtDecList(ParserNode_I nodeIndex){
+    Symbol_Value_Type type;
+    SymbolInfo_t typeMeta;
+    Analyze_getCurrentTypeInfo(&type, &typeMeta);
     if(isChildrenMatchRule(nodeIndex, 1, VAR_DEC)){
         Analyze_VarDec(GET_CHILD(nodeIndex, 0));
-        if(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueType != SVT_Void) {
-            char* varName = Analyze_getCurrentVarName();
-            SymbolRecord record;
-            SymbolTable_createVariableByInfo(symbolTable, &record, GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo);
-            SymbolTable_insertRecord(symbolTable, varName, &record);
+        SymbolInfo_Variable_t variableInfo = Analyze_Helper_handleExtractVariableInfo(GET_CHILD(nodeIndex, 0), type,
+                                                                                      typeMeta);
+        if(variableInfo!=NULL) {
+            Analyze_Helper_handleVariableDefine(GET_CHILD(nodeIndex, 0), variableInfo, Analyze_getCurrentVarName());
+            Analyze_popCurrentVarName();
         }
-        Analyze_popCurrentVarName();
     }
     else if(isChildrenMatchRule(nodeIndex, 3, VAR_DEC, COMMA, EXT_DEC_LIST)){
         Analyze_VarDec(GET_CHILD(nodeIndex, 0));
-        if(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueType != SVT_Void) {
-            char* varName = Analyze_getCurrentVarName();
-            SymbolRecord record;
-            SymbolTable_createVariableByInfo(symbolTable, &record, GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo);
-            SymbolTable_insertRecord(symbolTable, varName, &record);
+        SymbolInfo_Variable_t variableInfo = Analyze_Helper_handleExtractVariableInfo(GET_CHILD(nodeIndex, 0), type,
+                                                                                      typeMeta);
+        if(variableInfo!=NULL) {
+            Analyze_Helper_handleVariableDefine(GET_CHILD(nodeIndex, 0), variableInfo, Analyze_getCurrentVarName());
+            Analyze_popCurrentVarName();
         }
-        Analyze_popCurrentVarName();
         Analyze_ExtDecList(GET_CHILD(nodeIndex, 2));
-
     }
     return 0;
+}
+
+SymbolInfo_Variable_t Analyze_Helper_handleExtractVariableInfo(ParserNode_I varDec, Symbol_Value_Type variableType,
+                                                               SymbolInfo_t variableTypeMeta) {
+    char* varName = Analyze_getCurrentVarName();
+    int *dimensions = Analyze_getCurrentDimensions();
+    int dimensionCount = Analyze_getCurrentDimensionCount();
+    SymbolRecord_t record;
+    SymbolDefineStatus defineStatus = SymbolTable_lookupRecord(symbolTable, varName, &record);
+    if(defineStatus > SDS_ExternalDefined){
+        reportErrorFormat(GET_NODE(varDec)->lineNum, VariableNameRedefinition, "Variable \"%s\" redefined", varName);
+        return NULL;
+    }
+    else{
+        if(dimensionCount == 0){
+            SymbolInfo_Variable_t variable = SymbolInfo_Variable_createBaked(variableType,variableTypeMeta);
+            return variable;
+        }
+        else {
+            SymbolInfo_Array_t arrayInfo = SymbolInfo_Array_createBaked(variableType, variableTypeMeta, dimensions, dimensionCount);
+            SymbolInfo_Variable_t variable = SymbolInfo_Variable_createBaked(SVT_Array, arrayInfo);
+            Analyze_clearCurrentDimension();
+            return variable;
+        }
+    }
 }
 
 int Analyze_Specifier(ParserNode_I nodeIndex){
@@ -565,9 +606,10 @@ int Analyze_VarDec(ParserNode_I nodeIndex){
 
 int Analyze_FunDec(ParserNode_I nodeIndex){
     if(isChildrenMatchRule(nodeIndex, 3, ID, LP, RP)){
-        char* functionName = GET_NODE(GET_CHILD(nodeIndex, 0))->ID;
+
         SymbolInfo_Function_t functionInfo = SymbolInfo_Function_createBaked(SVT_Void, NULL, NULL, NULL, NULL, 0);
         // transfer the function name to the above level
+        char* functionName = GET_NODE(GET_CHILD(nodeIndex, 0))->ID;
         Analyze_pushCurrentVarName(functionName);
         Analyze_pushCurrentFunctionInfo(functionInfo);
     }
@@ -583,19 +625,9 @@ int Analyze_FunDec(ParserNode_I nodeIndex){
 int Analyze_VarList(ParserNode_I nodeIndex){
     if(isChildrenMatchRule(nodeIndex, 1, PARAM_DEC)){
         Analyze_ParamDec(GET_CHILD(nodeIndex, 0));
-        SymbolInfo_Parameter_t parameter = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo;
-        SymbolInfo_Function_t functionInfo = Analyze_getCurrentFunctionInfo();
-        if(parameter!=NULL){
-            SymbolInfo_Function_addParameter(functionInfo, parameter);
-        }
     }
     else if(isChildrenMatchRule(nodeIndex, 3, PARAM_DEC, COMMA, VAR_LIST)){
         Analyze_ParamDec(GET_CHILD(nodeIndex, 0));
-        SymbolInfo_Parameter_t parameter = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo;
-        SymbolInfo_Function_t functionInfo = Analyze_getCurrentFunctionInfo();
-        if(parameter!=NULL){
-            SymbolInfo_Function_addParameter(functionInfo, parameter);
-        }
         Analyze_VarList(GET_CHILD(nodeIndex, 2));
     }
     return 0;
@@ -603,35 +635,43 @@ int Analyze_VarList(ParserNode_I nodeIndex){
 int Analyze_ParamDec(ParserNode_I nodeIndex){
     if(isChildrenMatchRule(nodeIndex, 2, SPECIFIER, VAR_DEC)){
         Analyze_Specifier(GET_CHILD(nodeIndex, 0));
-        Analyze_pushCurrentTypeInfo(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueType,
-                                    GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo);
-        Analyze_VarDec(GET_CHILD(nodeIndex, 1));
-        Analyze_popCurrentTypeInfo();
-        SymbolInfo_Function_t functionInfo = Analyze_getCurrentFunctionInfo();
+        // Extract type from specifier
         Symbol_Value_Type type = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueType;
-        SymbolInfo_t typeMeta = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo;
-        char* varName = Analyze_getCurrentVarName();
-        int *dimensions = Analyze_getCurrentDimensions();
-        int dimensionCount = Analyze_getCurrentDimensionCount();
-        if(SymbolInfo_Function_hasParameterName(functionInfo, varName)){
-            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, VariableNameRedefinition, "parameter \"%s\" redefined", varName);
-            GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Void, NULL, semanticInfoList);
-        }
-        else{
-            if(dimensionCount == 0){
-                SymbolInfo_Parameter_t parameter = SymbolInfo_Parameter_createBaked(type, varName, typeMeta);
-                GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Int, parameter, semanticInfoList);
-            }
-            else {
-                SymbolInfo_Array_t arrayInfo = SymbolInfo_Array_createBaked(type, typeMeta, dimensions, dimensionCount);
-                SymbolInfo_Parameter_t parameter = SymbolInfo_Parameter_createBaked(SVT_Array, varName, arrayInfo);
-                GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Int, parameter, semanticInfoList);
-                Analyze_clearCurrentDimension();
-            }
+        SymbolInfo_t typeMeta = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueTypeMeta;
+        Analyze_VarDec(GET_CHILD(nodeIndex, 1));
+        SymbolInfo_Parameter_t parameterInfo = Analyze_Helper_handleExtractParameter(nodeIndex,
+                                                                                 Analyze_getCurrentFunctionInfo(), type,
+                                                                                 typeMeta);
+        if(parameterInfo!=NULL) {
+            SymbolInfo_Function_addParameter(Analyze_getCurrentFunctionInfo(), parameterInfo);
         }
         Analyze_popCurrentVarName();
     }
     return 0;
+}
+
+SymbolInfo_Parameter_t Analyze_Helper_handleExtractParameter(ParserNode_I varDec, SymbolInfo_Function_t functionInfo,
+                                                             Symbol_Value_Type paramType, SymbolInfo_t paramTypeMeta) {
+    char* varName = Analyze_getCurrentVarName();
+    int *dimensions = Analyze_getCurrentDimensions();
+    int dimensionCount = Analyze_getCurrentDimensionCount();
+    if(SymbolInfo_Function_hasParameterName(functionInfo, varName)){
+        reportErrorFormat(GET_NODE(varDec)->lineNum, VariableNameRedefinition, "parameter \"%s\" redefined", varName);
+        return NULL;
+    }
+    else{
+        if(dimensionCount == 0){
+            SymbolInfo_Parameter_t parameter = SymbolInfo_Parameter_createBaked(paramType, varName, paramTypeMeta);
+            return parameter;
+        }
+        else {
+            SymbolInfo_Array_t arrayInfo = SymbolInfo_Array_createBaked(paramType, paramTypeMeta, dimensions, dimensionCount);
+            SymbolInfo_Parameter_t parameter = SymbolInfo_Parameter_createBaked(SVT_Array, varName, arrayInfo);
+            Analyze_clearCurrentDimension();
+            return parameter;
+        }
+    }
+    return NULL;
 }
 
 int Analyze_CompSt(ParserNode_I nodeIndex){
@@ -720,7 +760,7 @@ int Analyze_Def_Variable(ParserNode_I nodeIndex){
     if(isChildrenMatchRule(nodeIndex, 3, SPECIFIER, DEC_LIST, SEMI)){
         Analyze_Specifier(GET_CHILD(nodeIndex, 0));
         Analyze_pushCurrentTypeInfo(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueType,
-                                    GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo);
+                                    GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueTypeMeta);
         Analyze_DecList_Variable(GET_CHILD(nodeIndex, 1));
         Analyze_popCurrentTypeInfo();
     }
@@ -730,27 +770,22 @@ int Analyze_Def_Variable(ParserNode_I nodeIndex){
 int Analyze_DecList_Variable(ParserNode_I nodeIndex){
     if(isChildrenMatchRule(nodeIndex, 1, DEC)){
         Analyze_Dec_Variable(GET_CHILD(nodeIndex, 0));
-        if(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueType != SVT_Void) {
-            char* varName = Analyze_getCurrentVarName();
-            SymbolRecord record;
-            SymbolTable_createVariableByInfo(symbolTable, &record, GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo);
-            SymbolTable_insertRecord(symbolTable, varName, &record);
-        }
-        Analyze_popCurrentVarName();
     }
     else if(isChildrenMatchRule(nodeIndex, 3, DEC, COMMA, DEC_LIST)){
         Analyze_Dec_Variable(GET_CHILD(nodeIndex, 0));
-
-        if(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueType != SVT_Void) {
-            char* varName = Analyze_getCurrentVarName();
-            SymbolRecord record;
-            SymbolTable_createVariableByInfo(symbolTable, &record, GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo);
-            SymbolTable_insertRecord(symbolTable, varName, &record);
-        }
-        Analyze_popCurrentVarName();
         Analyze_DecList_Variable(GET_CHILD(nodeIndex, 2));
     }
     return 0;
+}
+
+void Analyze_Helper_handleVariableDefine(ParserNode_I varDec, SymbolInfo_Variable_t variableInfo, char *variableName) {
+    SymbolRecord record;
+    SymbolTable_createVariableByInfo(symbolTable, &record, variableInfo);
+    SymbolTable_insertRecord(symbolTable, variableName, &record);
+    variableInfo->varID = SymbolTable_getNextVarID(symbolTable);
+    SemanticInfo_t varDecInfo = SemanticInfo_createRvalue(variableInfo->type, variableInfo->meta, semanticInfoList);
+    varDecInfo->varID = variableInfo->varID;
+    GET_NODE(varDec)->semanticInfo = varDecInfo;
 }
 
 int Analyze_Dec_Variable(ParserNode_I nodeIndex){
@@ -761,68 +796,26 @@ int Analyze_Dec_Variable(ParserNode_I nodeIndex){
 
     if(isChildrenMatchRule(nodeIndex, 1, VAR_DEC)){
         Analyze_VarDec(GET_CHILD(nodeIndex, 0));
-        char* varName = Analyze_getCurrentVarName();
-        int *dimensions = Analyze_getCurrentDimensions();
-        int dimensionCount = Analyze_getCurrentDimensionCount();
-        SymbolRecord_t record;
-        SymbolDefineStatus defineStatus = SymbolTable_lookupRecord(symbolTable, varName, &record);
-        if(defineStatus > SDS_ExternalDefined){
-            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, VariableNameRedefinition, "Variable \"%s\" redefined", varName);
-            GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Void, NULL, semanticInfoList);
-        }
-        else{
-            if(dimensionCount == 0){
-                SymbolInfo_Variable_t variable = SymbolInfo_Variable_createBaked(type,typeMeta);
-                GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Int, variable, semanticInfoList);
-                GET_CHILD_NODE(nodeIndex,0)->semanticInfo = GET_NODE(nodeIndex)->semanticInfo;
-            }
-            else {
-                SymbolInfo_Array_t arrayInfo = SymbolInfo_Array_createBaked(type, typeMeta, dimensions, dimensionCount);
-                SymbolInfo_Variable_t variable = SymbolInfo_Variable_createBaked(SVT_Array, arrayInfo);
-                GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Int, variable, semanticInfoList);
-                GET_CHILD_NODE(nodeIndex,0)->semanticInfo = GET_NODE(nodeIndex)->semanticInfo;
-                Analyze_clearCurrentDimension();
-            }
+        SymbolInfo_Variable_t variableInfo = Analyze_Helper_handleExtractVariableInfo(GET_CHILD(nodeIndex, 0), type, typeMeta);
+        if(variableInfo!=NULL)
+        {
+            Analyze_Helper_handleVariableDefine(GET_CHILD(nodeIndex, 0), variableInfo, Analyze_getCurrentVarName());
+            Analyze_popCurrentVarName();
         }
     }
     else if(isChildrenMatchRule(nodeIndex, 3, VAR_DEC, ASSIGNOP, EXP)){
         Analyze_VarDec(GET_CHILD(nodeIndex, 0));
-        char* varName = Analyze_getCurrentVarName();
-        int *dimensions = Analyze_getCurrentDimensions();
-        int dimensionCount = Analyze_getCurrentDimensionCount();
+        SymbolInfo_Variable_t variableInfo = Analyze_Helper_handleExtractVariableInfo(GET_CHILD(nodeIndex, 0), type, typeMeta);
         Analyze_Exp(GET_CHILD(nodeIndex, 2));
-
-        SymbolRecord_t record;
-        SymbolDefineStatus defineStatus = SymbolTable_lookupRecord(symbolTable, varName, &record);
-        if(defineStatus > SDS_ExternalDefined){
-            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, VariableNameRedefinition, "Variable \"%s\" redefined", varName);
-            GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Void, NULL, semanticInfoList);
-        }
-        else{
-            SymbolInfo_Variable_t variable;
-            if(dimensionCount == 0){
-                variable = SymbolInfo_Variable_createBaked(type,typeMeta);
-                GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Int, variable, semanticInfoList);
-                GET_CHILD_NODE(nodeIndex,0)->semanticInfo = GET_NODE(nodeIndex)->semanticInfo;
-            }
-            else {
-                SymbolInfo_Array_t arrayInfo = SymbolInfo_Array_createBaked(type, typeMeta, dimensions, dimensionCount);
-                variable = SymbolInfo_Variable_createBaked(SVT_Array, arrayInfo);
-                GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Int, variable, semanticInfoList);
-                GET_CHILD_NODE(nodeIndex,0)->semanticInfo = GET_NODE(nodeIndex)->semanticInfo;
-                Analyze_clearCurrentDimension();
-            }
-            if(!SymbolInfo_Helper_isTypeMatched(variable->type, variable->meta,
-                                                 GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 2))->valueType,
-                                                 GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 2))->valueInfo)){
+        if(variableInfo!=NULL)
+        {
+            if(!SymbolInfo_Helper_isTypeMatched(variableInfo->type, variableInfo->meta,
+                                               GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 2))->valueType,
+                                               GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 2))->valueTypeMeta)){
                 reportErrorFormat(GET_NODE(nodeIndex)->lineNum, AssignmentTypeMismatch, "Assignment type mismatch");
-                if(GET_SEMANTIC_INFO(nodeIndex)->valueType == SVT_Array){
-                    SymbolInfo_Array_destroy(variable->meta);
-                }
-                GET_SEMANTIC_INFO(nodeIndex)->valueType = SVT_Void;
-                GET_SEMANTIC_INFO(nodeIndex)->valueInfo = NULL;
             }
-
+            Analyze_Helper_handleVariableDefine(GET_CHILD(nodeIndex, 0), variableInfo, Analyze_getCurrentVarName());
+            Analyze_popCurrentVarName();
         }
     }
     return 0;
@@ -831,19 +824,9 @@ int Analyze_Dec_Variable(ParserNode_I nodeIndex){
 int Analyze_DecList_StructMember(ParserNode_I nodeIndex){
     if(isChildrenMatchRule(nodeIndex, 1, DEC)){
         Analyze_Dec_StructMember(GET_CHILD(nodeIndex, 0));
-        // insert valid member into the struct
-        if(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo != NULL) {
-            SymbolInfo_Struct_insertMember(Analyze_getCurrentStructInfo(),
-                                           GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo);
-        }
     }
     else if(isChildrenMatchRule(nodeIndex, 3, DEC, COMMA, DEC_LIST)){
         Analyze_Dec_StructMember(GET_CHILD(nodeIndex, 0));
-        // insert valid member into the struct
-        if(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo != NULL) {
-            SymbolInfo_Struct_insertMember(Analyze_getCurrentStructInfo(),
-                                           GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo);
-        }
         Analyze_DecList_StructMember(GET_CHILD(nodeIndex, 2));
     }
     return 0;
@@ -863,7 +846,7 @@ int Analyze_Def_StructMember(ParserNode_I nodeIndex){
     if(isChildrenMatchRule(nodeIndex, 3, SPECIFIER, DEC_LIST, SEMI)){
         Analyze_Specifier(GET_CHILD(nodeIndex, 0));
         Analyze_pushCurrentTypeInfo(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueType,
-                                    GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo);
+                                    GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueTypeMeta);
         Analyze_DecList_StructMember(GET_CHILD(nodeIndex, 1));
         Analyze_popCurrentTypeInfo();
     }
@@ -878,64 +861,59 @@ int Analyze_Dec_StructMember(ParserNode_I nodeIndex){
     Analyze_getCurrentTypeInfo(&type, &typeMeta);
     if(isChildrenMatchRule(nodeIndex, 1, VAR_DEC)){
         Analyze_VarDec(GET_CHILD(nodeIndex, 0));
-        char* varName = Analyze_getCurrentVarName();
-        int *dimensions = Analyze_getCurrentDimensions();
-        int dimensionCount = Analyze_getCurrentDimensionCount();
-        if(SymbolInfo_Struct_checkMemberName(ownerStruct, varName)){
-            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, InvalidMemberDefinition, "Struct member \"%s\" redefined", varName);
-            GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Void, NULL, semanticInfoList);
-        }
-        else{
-            if(dimensionCount == 0){
-                SymbolInfo_Member_t member = SymbolInfo_Member_createBaked(type, varName, typeMeta);
-                GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Int, member, semanticInfoList);
-            }
-            else {
-                SymbolInfo_Array_t arrayInfo = SymbolInfo_Array_createBaked(type, typeMeta, dimensions, dimensionCount);
-                SymbolInfo_Member_t member = SymbolInfo_Member_createBaked(SVT_Int, varName, arrayInfo);
-                GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Int, member, semanticInfoList);
-                Analyze_clearCurrentDimension();
-            }
-        }
+        SymbolInfo_Member_t memberInfo = Analyze_handleExtractMember(GET_CHILD(nodeIndex, 0), ownerStruct, type, typeMeta, Analyze_getCurrentVarName());
         Analyze_popCurrentVarName();
+        if(memberInfo!=NULL)
+        {
+            Analyze_Helper_handleMemberDefine(GET_CHILD(nodeIndex, 0), ownerStruct, memberInfo, Analyze_getCurrentVarName());
+        }
     }
     else if(isChildrenMatchRule(nodeIndex, 3 , VAR_DEC, ASSIGNOP, EXP)){
         Analyze_VarDec(GET_CHILD(nodeIndex, 0));
         Analyze_Exp(GET_CHILD(nodeIndex, 2));
-        char* varName = Analyze_getCurrentVarName();
-        int *dimensions = Analyze_getCurrentDimensions();
-        int dimensionCount = Analyze_getCurrentDimensionCount();
-        SymbolInfo_Member_t member;
-        if(SymbolInfo_Struct_checkMemberName(ownerStruct, varName)){
-            reportErrorFormat(GET_NODE(nodeIndex)->lineNum, InvalidMemberDefinition, "Struct member \"%s\" redefined", varName);
-            GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Void, NULL, semanticInfoList);
-        }
-        else{
-            if(dimensionCount == 0){
-                member = SymbolInfo_Member_createBaked(type, varName, typeMeta);
-                GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Int, member, semanticInfoList);
-            }
-            else {
-                SymbolInfo_Array_t arrayInfo = SymbolInfo_Array_createBaked(type, typeMeta, dimensions, dimensionCount);
-                member = SymbolInfo_Member_createBaked(SVT_Array, varName, arrayInfo);
-                GET_NODE(nodeIndex)->semanticInfo = SemanticInfo_createRvalue(SVT_Int, member, semanticInfoList);
-                Analyze_clearCurrentDimension();
-            }
-            if(!SymbolInfo_Helper_isTypeMatched(member->memberType, member->memberMeta,
-                                                 GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 2))->valueType,
-                                                 GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 2))->valueInfo)){
-                reportErrorFormat(GET_NODE(nodeIndex)->lineNum, AssignmentTypeMismatch, "Assignment type mismatch");
-                if(GET_SEMANTIC_INFO(nodeIndex)->valueInfo!=NULL)
-                {
-                    SymbolInfo_Member_destroy(GET_SEMANTIC_INFO(nodeIndex)->valueInfo);
-                }
-                GET_SEMANTIC_INFO(nodeIndex)->valueType = SVT_Void;
-                GET_SEMANTIC_INFO(nodeIndex)->valueInfo = NULL;
-            }
-        }
+        SymbolInfo_Member_t memberInfo = Analyze_handleExtractMember(GET_CHILD(nodeIndex, 0), ownerStruct, type, typeMeta, Analyze_getCurrentVarName());
         Analyze_popCurrentVarName();
+        if(memberInfo!=NULL)
+        {
+            if(!SymbolInfo_Helper_isTypeMatched(memberInfo->memberType, memberInfo->memberMeta,
+                                               GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 2))->valueType,
+                                               GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 2))->valueTypeMeta)){
+                reportErrorFormat(GET_NODE(nodeIndex)->lineNum, AssignmentTypeMismatch, "Assignment type mismatch");
+            }
+            Analyze_Helper_handleMemberDefine(GET_CHILD(nodeIndex, 0), ownerStruct, memberInfo, Analyze_getCurrentVarName());
+        }
     }
     return 0;
+}
+
+void
+Analyze_Helper_handleMemberDefine(ParserNode_I varDec, SymbolInfo_Struct_t structInfo, SymbolInfo_Member_t memberInfo,
+                                  char *memberName) {
+    SymbolInfo_Struct_insertMember(structInfo, memberInfo);
+}
+
+SymbolInfo_Member_t
+Analyze_handleExtractMember(ParserNode_I varDec, SymbolInfo_Struct_t ownerStruct, Symbol_Value_Type type,
+                            SymbolInfo_t typeMeta, char *memberName) {
+    int *dimensions = Analyze_getCurrentDimensions();
+    int dimensionCount = Analyze_getCurrentDimensionCount();
+    if(SymbolInfo_Struct_checkMemberName(ownerStruct, memberName)){
+        reportErrorFormat(GET_NODE(varDec)->lineNum, InvalidMemberDefinition, "Struct member \"%s\" redefined", memberName);
+        return NULL;
+    }
+    else{
+        if(dimensionCount == 0){
+            SymbolInfo_Member_t member = SymbolInfo_Member_createBaked(type, memberName, typeMeta);
+            return member;
+        }
+        else {
+            SymbolInfo_Array_t arrayInfo = SymbolInfo_Array_createBaked(type, typeMeta, dimensions, dimensionCount);
+            SymbolInfo_Member_t member = SymbolInfo_Member_createBaked(SVT_Int, memberName, arrayInfo);
+            Analyze_clearCurrentDimension();
+            return member;
+        }
+    }
+    return NULL;
 }
 
 #pragma clang diagnostic push
@@ -1154,7 +1132,7 @@ int Analyze_Exp(ParserNode_I nodeIndex){
             node->semanticInfo = SemanticInfo_createLvalue(SVT_Int, NULL, semanticInfoList);
         }
         else{
-            SymbolInfo_Array_t arrayInfo = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueInfo;
+            SymbolInfo_Array_t arrayInfo = GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0))->valueTypeMeta;
             node->semanticInfo = SemanticInfo_createLvalue(arrayInfo->elementType, arrayInfo->elementMeta,
                                                            semanticInfoList);
         }
@@ -1204,7 +1182,7 @@ int Analyze_Exp(ParserNode_I nodeIndex){
             SymbolInfo_Variable_t variableInfo = (SymbolInfo_Variable_t)record->info;
             //make an empty semantic info to let the analysis can continue
             node->semanticInfo = SemanticInfo_createLvalue(variableInfo->type, variableInfo->meta, semanticInfoList);
-            node->semanticInfo->variableInfo = variableInfo;
+            node->semanticInfo->varID = variableInfo->varID;
         }
 
     }

@@ -17,13 +17,13 @@
 typedef struct SemanticInfo_s{
     // Rvalue members, following members are only valid when isLValue is false
     Symbol_Value_Type valueType;
-    SymbolInfo_t valueInfo;
+    SymbolInfo_t valueTypeMeta;
 
     // Semantic information
     int isLValue;
-    SymbolInfo_Variable_t variableInfo;
-    // used for intercode generate
 
+    // used for intercode generate
+    int varID;
 }SemanticInfo;
 typedef SemanticInfo* SemanticInfo_t;
 
@@ -42,7 +42,7 @@ SemanticInfo_createLvalue(Symbol_Value_Type valueType, SymbolInfo_t valueInfo, S
  * Create a new Rvalue SemanticInfo object
  * @note IN Cmm, ALL Rvalue act like a variable
  * @param valueType the value type of the RValue
- * @param valueInfo the valueInfo information of the RValue
+ * @param valueInfo the valueTypeMeta information of the RValue
  * @param semanticInfoList the list to collect recently created semanticInfo, used for garbage collection
  * @return a new SemanticInfo object
  */
