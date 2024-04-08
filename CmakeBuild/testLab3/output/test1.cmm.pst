@@ -1,0 +1,19 @@
+FUNCTION main :
+READ t1
+t0 := t1
+IF t0 > #0 GOTO label$0_body
+GOTO label$1_else
+LABEL label$0_body :
+WRITE #1
+GOTO label$2_after
+LABEL label$1_else :
+IF t0 < #0 GOTO label$3_body
+GOTO label$4_else
+LABEL label$3_body :
+WRITE #-1
+GOTO label$5_after
+LABEL label$4_else :
+WRITE #0
+LABEL label$5_after :
+LABEL label$2_after :
+RETURN #0
