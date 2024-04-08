@@ -207,6 +207,9 @@ void printParserNode(ParserNode_I nodeIndex, int depth) {
     {
         return;
     }
+#ifdef DEBUG_PRINT_PARSER_NODE_INDEX
+    printf("%d\t", nodeIndex);
+#endif
     ParserNode_t node = getParserNode(nodeIndex);
     if(IS_SYNTAX_TOKEN(node->token))
     {

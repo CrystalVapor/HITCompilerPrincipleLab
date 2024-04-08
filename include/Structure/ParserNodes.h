@@ -23,6 +23,8 @@
 #define GET_CHILD_NODE(nodeIndex, i)  (GET_NODE(GET_CHILD(nodeIndex, i)))
 #define GET_CHILD_NUM(nodeIndex)  (getParserNodeChildNum(nodeIndex))
 
+//#define DEBUG_PRINT_PARSER_NODE_INDEX
+
 void setParserTreeRoot(ParserNode_I InRootIndex);
 
 ParserNode_I getParserTreeRoot();
