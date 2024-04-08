@@ -14,6 +14,7 @@
 
 #include "CmmParserTypes.h"
 #include "Structure/SimpleList.h"
+#include "Structure/SymbolTable.h"
 
 #define MAX_INTERCODE_PARAM 3
 
@@ -125,15 +126,12 @@ typedef struct{
     char* trueLabel;
     char* falseLabel;
     int specialRequest;
-    int typeSize;
 }InterCodeInstruction;
 typedef InterCodeInstruction* InterCodeInstruction_t;
 
 #define REQ_NO 0
 #define REQ_ADDRESS 1
 #define REQ_NORETURN 2
-#define REQ_ALLOC 3
-
 
 /**
  * Generate intermediate code for the given syntax tree.
@@ -153,10 +151,10 @@ void generateInterCode_End();
  * Create a new InterCodeInfo.
  * @param type the type of the intermediate code.
  * @param paramNum the number of parameters.
- * @param ... the parameters, format: type, value
+ * @param va_list the parameters' list packed by Handle
  * @return the new InterCodeInfo.
  */
-InterCodeInfo_t InterCodeInfo_create(InterCodeType type, int paramNum, ...);
+InterCodeInfo_t InterCodeInfo_create(InterCodeType type, int paramNum, va_list paramList);
 
 /**
  * Print the Param to buffer.
@@ -166,12 +164,6 @@ InterCodeInfo_t InterCodeInfo_create(InterCodeType type, int paramNum, ...);
  * @return characters printed to buffer(including the null terminator)
  */
 int InterCodeParam_printToBuffer(InterCodeParam* param, char* buffer, int bufferSize);
-
-InterCodeParam_t InterCodeParam_createInt(int intVal);
-
-InterCodeParam_t InterCodeParam_createVar(char* varName);
-
-InterCodeParam_t InterCodeParam_createLabel(char* labelName);
 
 /**
  * Merge two InterCodeHandle.
@@ -190,23 +182,39 @@ InterCodeHandle InterCodeHandle_merge(InterCodeHandle handle1, InterCodeHandle h
 InterCodeHandle InterCodeHandle_create();
 
 /**
- *
- * @param codeType
- * @param paramNum
- * @param ...
- * @return
+ * Add a new InterCode to the InterCodeHandle at the end.
+ * @param handle the handle to add code.
+ * @param codeType the type of the code.
+ * @param paramNum the number of parameters.
+ * @param ... the parameters, format: [InterCodeParam_type, value]
  */
 void InterCodeHandle_newCode(InterCodeHandle handle, InterCodeType codeType, int paramNum, ...);
+
 /**
  * Destroy the InterCodeHandle and codes in it.
  * @param handle the handle to destroy.
  */
 void InterCodeHandle_destroy(InterCodeHandle handle);
 
+/**
+ * Print the InterCodeHandle to the file.
+ * @param file the file to print.
+ * @param handle the handle to print.
+ */
+void InterCodeHandle_print(FILE *file, InterCodeHandle handle);
+
+/**
+ * @return if param's a struct/array, return 1
+ */
+int InterCodeGenerator_Helper_isParamAddressReferenced(SymbolInfo_Function_t functionInfo, int paramID);
+
 #define INTERCODEPARAM_GETLABEL(param) ((param)->labelName)
 #define INTERCODEPARAM_GETVAR(param) ((param)->varID)
 #define INTERCODEPARAM_GETPARAM(param) ((param)->paramID)
 #define INTERCODEPARAM_GETINT(param) ((param)->intVal)
+
+#define IS_VARIABLE_ID_A_PARAM_ID(variableID) ((variableID) < 0)
+#define GET_VARIABLE_ID_FROM_PARAM_ID(paramID) (-(paramID))
 
 #define INTERCODEINFO_CREATE_AND_ADD(container, type, paramNum, ...) \
     do{ \

@@ -15,7 +15,7 @@
 
 char tempBuffer[100];
 
-char isParamAddressReferenced[MAX_FUNC_PARAM] = {0};
+SimpleArray_t currentFunctionInfoStack_IC = NULL;
 
 int currentScope = 0;
 
@@ -67,7 +67,7 @@ InterCodeHandle InterCodeGenerate_ExtDefList(ParserNode_I nodeIndex);
 
 InterCodeHandle InterCodeGenerate_ExtDef(ParserNode_I nodeIndex);
 
-InterCodeHandle InterCodeGenerate_ExtDecList(ParserNode_I nodeIndex, InterCodeInstruction *superInstruction);
+InterCodeHandle InterCodeGenerate_ExtDecList(ParserNode_I nodeIndex);
 
 InterCodeHandle InterCodeGenerate_VarDec(ParserNode_I nodeIndex);
 
@@ -81,7 +81,7 @@ InterCodeHandle InterCodeGenerate_DefList(ParserNode_I nodeIndex);
 
 InterCodeHandle InterCodeGenerate_Def(ParserNode_I nodeIndex);
 
-InterCodeHandle InterCodeGenerate_DecList(ParserNode_I nodeIndex, InterCodeInstruction *superInstruction);
+InterCodeHandle InterCodeGenerate_DecList(ParserNode_I nodeIndex);
 
 InterCodeHandle InterCodeGenerate_Dec(ParserNode_I nodeIndex);
 
@@ -256,7 +256,7 @@ void InterCodeInfo_generate_Dec(struct InterCodeInfo_s*  interCodeInfo, FILE* fi
     
     fprintf(file, "DEC ");
     InterCodeParam_printToBuffer(&interCodeInfo->params[0], tempBuffer, 100);
-    fprintf(file, "%s \n", tempBuffer);
+    fprintf(file, "%s ", tempBuffer);
     snprintf(tempBuffer, 100, "%d", INTERCODEPARAM_GETINT(&interCodeInfo->params[1]));
     fprintf(file, "%s\n", tempBuffer);
 }
@@ -336,30 +336,27 @@ InterCodeInfo_VT InterCodeInfo_VT_INSTANCE[IC_WRITE+ 1] = {
  * Implementations for InterCodeInfo
  */
 
-InterCodeInfo_t InterCodeInfo_create(InterCodeType type, int paramNum, ...){
+InterCodeInfo_t InterCodeInfo_create(InterCodeType type, int paramNum, va_list paramList){
     InterCodeInfo_t interCodeInfo = (InterCodeInfo_t)malloc(sizeof(InterCodeInfo));
     interCodeInfo->vptr = &InterCodeInfo_VT_INSTANCE[type];
     interCodeInfo->type = type;
-    va_list args;
-    va_start(args, paramNum);
     for(int i = 0; i < paramNum; i++) {
-        interCodeInfo->params[i].type = va_arg(args, InterCodeParam_Type);
+        interCodeInfo->params[i].type = va_arg(paramList, InterCodeParam_Type);
         switch (interCodeInfo->params[i].type) {
             case ICP_INT:
-                interCodeInfo->params[i].intVal = va_arg(args, int);
+                interCodeInfo->params[i].intVal = va_arg(paramList, int);
                 break;
             case ICP_VAR:
-                interCodeInfo->params[i].varID = va_arg(args, int);
+                interCodeInfo->params[i].varID = va_arg(paramList, int);
                 break;
             case ICP_LABEL:
-                interCodeInfo->params[i].labelName = strdup(va_arg(args, char*));
+                interCodeInfo->params[i].labelName = strdup(va_arg(paramList, char*));
                 break;
             case ICP_PARAM:
-                interCodeInfo->params[i].paramID = va_arg(args, int);
+                interCodeInfo->params[i].paramID = va_arg(paramList, int);
                 break;
         }
     }
-    va_end(args);
     return interCodeInfo;
 }
 
@@ -410,6 +407,10 @@ InterCodeHandle InterCodeHandle_merge(InterCodeHandle handle1, InterCodeHandle h
     if(handle2 == INVALID_INTERCODE_HANDLE){
         return handle1;
     }
+    if(handle1 == handle2)
+    {
+        return handle1;
+    }
     handle1->codes = SimpleList_append(handle1->codes, handle2->codes);
     free(handle2);
     return handle1;
@@ -418,21 +419,35 @@ InterCodeHandle InterCodeHandle_merge(InterCodeHandle handle1, InterCodeHandle h
 InterCodeHandle generateInterCode(ParserNode_I rootNodeIndex, FILE *file, SymbolTable_t inSymbolTable) {
 
     symbolTable_IC = inSymbolTable;
+    currentFunctionInfoStack_IC = SimpleArray_create(sizeof(SymbolInfo_Function_t));
+
     InterCodeHandle handle = InterCodeGenerate_Program(rootNodeIndex);
 
-    SimpleList_t codes = handle->codes;
-    SimpleListNode_t node = codes->head;
-    while(node != NULL){
-        InterCodeInfo_t interCodeInfo = (InterCodeInfo_t)node->data;
-        interCodeInfo->vptr->generateInterCode(interCodeInfo, file);
-        node = node->next;
+    if(file!=NULL) {
+        InterCodeHandle_print(file, handle);
     }
 
     return handle;
 }
 
-void generateInterCode_End(){
+void InterCodeHandle_print(FILE *file, InterCodeHandle handle) {
+    SimpleList_t codes = handle->codes;
+    SimpleListNode_t node = codes->head;
+    while (node != NULL) {
+        InterCodeInfo_t interCodeInfo = (InterCodeInfo_t) node->data;
+        interCodeInfo->vptr->generateInterCode(interCodeInfo, file);
+        node = node->next;
+    }
+}
 
+void generateInterCode_End(){
+    SimpleArray_destroy(currentFunctionInfoStack_IC, NULL);
+}
+
+int InterCodeGenerator_Helper_isParamAddressReferenced(SymbolInfo_Function_t functionInfo, int paramID) {
+    paramID = GET_VARIABLE_ID_FROM_PARAM_ID(paramID);
+    SymbolInfo_Parameter_t paramInfo = functionInfo->parameters[paramID-1];
+    return paramInfo->parameterType == SVT_Array || paramInfo->parameterType == SVT_Struct;
 }
 
 InterCodeHandle InterCodeGenerate_Program(ParserNode_I nodeIndex) {
@@ -461,17 +476,7 @@ InterCodeHandle InterCodeGenerate_ExtDef(ParserNode_I nodeIndex){
     if(isChildrenMatchRule(nodeIndex, 3, SPECIFIER, EXT_DEC_LIST, SEMI)){
         // a global variable declaration
         // make no sense in intermediate code
-        SemanticInfo_t specifierSemanticInfo = GET_CHILD_NODE(nodeIndex, 1)->semanticInfo;
-        InterCodeInstruction instruction = {NULL, NULL, REQ_NO};
-        if(specifierSemanticInfo->valueType == SVT_Struct || specifierSemanticInfo->valueType == SVT_Array){
-            // we need to allocate space for the struct or array
-            // code:
-            // DEC [VarDec's ID] [VarDec's size]
-            instruction.specialRequest = REQ_ALLOC;
-            instruction.typeSize = SymbolValue_getSize(specifierSemanticInfo->valueType, specifierSemanticInfo->valueInfo);
-        }
-        InterCodeHandle childExtDecListHandle = InterCodeGenerate_ExtDecList(GET_CHILD(nodeIndex, 1), &instruction);
-        return childExtDecListHandle;
+        return InterCodeGenerate_ExtDecList(GET_CHILD(nodeIndex, 1));
     }
     else if(isChildrenMatchRule(nodeIndex, 2, SPECIFIER, SEMI)){
         // a global variable declaration
@@ -498,23 +503,23 @@ InterCodeHandle InterCodeGenerate_ExtDef(ParserNode_I nodeIndex){
         InterCodeHandle_newCode(handle, IC_FUNC, 1,
                                 ICP_LABEL, funcName);
         // secondly, generate PARAM for each parameter
-        // before we start to exmine the parameters, we need to set the isParamAddressReferenced to 0
-        memset(isParamAddressReferenced, 0, MAX_FUNC_PARAM);
 
         for(int i = 0; i < functionInfo->parameterCount; i++){
             SymbolInfo_Parameter_t paramInfo = functionInfo->parameters[i];
             InterCodeHandle_newCode(handle, IC_PARAM, 1,
                                     ICP_PARAM, i+1);
-            // we should instruct the ID that where the param is an address
-            // but ID's too far from here, we cant use instruction parameter to do that
-            // we use a global array to store the information
-            if(paramInfo->parameterType == SVT_Struct || paramInfo->parameterType == SVT_Array){
-                isParamAddressReferenced[i] = 1;
-            }
         }
+
+        // thirdly, we push current function info to the stack
+        // since we need to know whether the param is an address
+        SimpleArray_pushBack(currentFunctionInfoStack_IC, &functionInfo);
+
         // thirdly, generate the CompSt's code
         InterCodeHandle childCompStHandle = InterCodeGenerate_CompSt(GET_CHILD(nodeIndex, 2));
         handle = InterCodeHandle_merge(handle, childCompStHandle);
+
+        // don't forget to pop the function info
+        SimpleArray_popBack(currentFunctionInfoStack_IC, NULL);
         return handle;
     }
     else if(isChildrenMatchRule(nodeIndex, 3, SPECIFIER, FUN_DEC, SEMI)){
@@ -525,59 +530,34 @@ InterCodeHandle InterCodeGenerate_ExtDef(ParserNode_I nodeIndex){
     return INVALID_INTERCODE_HANDLE;
 }
 
-InterCodeHandle InterCodeGenerate_ExtDecList(ParserNode_I nodeIndex, InterCodeInstruction* superInstruction){
+InterCodeHandle InterCodeGenerate_ExtDecList(ParserNode_I nodeIndex){
     if(isChildrenMatchRule(nodeIndex, 1, VAR_DEC))
     {
-        InterCodeHandle handle = InterCodeHandle_create();
-        InterCodeHandle childVarDecHandle = InterCodeGenerate_VarDec(GET_CHILD(nodeIndex, 0));
-        if(superInstruction->specialRequest == REQ_ALLOC)
-        {
-            InterCodeHandle_newCode(handle, IC_DEC, 2,
-                                    ICP_VAR, childVarDecHandle->returnID,
-                                    ICP_INT, superInstruction->typeSize);
-        }
-        handle = InterCodeHandle_merge(handle, childVarDecHandle);
-        return handle;
+        return InterCodeGenerate_VarDec(GET_CHILD(nodeIndex, 0));
     }
     else if(isChildrenMatchRule(nodeIndex, 3, VAR_DEC, COMMA, EXT_DEC_LIST))
     {
-        InterCodeHandle handle = InterCodeHandle_create();
         InterCodeHandle childVarDecHandle = InterCodeGenerate_VarDec(GET_CHILD(nodeIndex, 0));
-        if(superInstruction->specialRequest == REQ_ALLOC)
-        {
-            InterCodeHandle_newCode(handle, IC_DEC, 2,
-                                    ICP_VAR, childVarDecHandle->returnID,
-                                    ICP_INT, superInstruction->typeSize);
-        }
-        handle = InterCodeHandle_merge(handle, childVarDecHandle);
-        InterCodeHandle childExtDecListHandle = InterCodeGenerate_ExtDecList(GET_CHILD(nodeIndex, 2), superInstruction);
-        return InterCodeHandle_merge(handle, childExtDecListHandle);
+        InterCodeHandle childExtDecListHandle = InterCodeGenerate_ExtDecList(GET_CHILD(nodeIndex, 2));
+        return InterCodeHandle_merge(childVarDecHandle, childExtDecListHandle);
     }
     return INVALID_INTERCODE_HANDLE;
 }
 
 InterCodeHandle InterCodeGenerate_VarDec(ParserNode_I nodeIndex) {
-    if(isChildrenMatchRule(nodeIndex, 1, ID))
-    {
-        InterCodeHandle handle = InterCodeHandle_create();
-        SymbolInfo_Variable_t variableInfo = GET_CHILD_NODE(nodeIndex, 0)->semanticInfo->variableInfo;
-        handle->returnID = variableInfo->varID;
-        handle->returnType = ICP_VAR;
-        return handle;
+    InterCodeHandle handle = InterCodeHandle_create();
+    SemanticInfo_t varDecInfo = GET_NODE(nodeIndex)->semanticInfo;
+    if(varDecInfo->valueType == SVT_Struct || varDecInfo->valueType == SVT_Array){
+        // this is a struct or array, we need to generate a DEC instruction
+        // code:
+        // DEC [ID] [size]
+        InterCodeHandle_newCode(handle, IC_DEC, 2,
+                                ICP_VAR, varDecInfo->varID,
+                                ICP_INT, SymbolValue_getSize(varDecInfo->valueType, varDecInfo->valueTypeMeta));
     }
-    else if(isChildrenMatchRule(nodeIndex, 4, VAR_DEC, LB, INT, RB))
-    {
-        // allocate new array
-        // we need to return the array's base address
-        // but in fact this is not used in this very intermediate code generator
-        // we just do something like the ID's case
-        InterCodeHandle handle = InterCodeHandle_create();
-        SymbolInfo_Variable_t variableInfo = GET_CHILD_NODE(nodeIndex, 0)->semanticInfo->variableInfo;
-        handle->returnID = variableInfo->varID;
-        handle->returnType = ICP_VAR;
-        return handle;
-    }
-    return INVALID_INTERCODE_HANDLE;
+    handle->returnID = varDecInfo->varID;
+    handle->returnType = ICP_VAR;
+    return handle;
 }
 
 InterCodeHandle InterCodeGenerate_CompSt(ParserNode_I nodeIndex){
@@ -633,6 +613,7 @@ InterCodeHandle InterCodeGenerate_Stmt(ParserNode_I nodeIndex){
         InterCodeHandle childExpHandle = InterCodeGenerate_Exp(GET_CHILD(nodeIndex, 1), &instruction);
         InterCodeHandle_newCode(childExpHandle, IC_RETURN, 1,
                                 childExpHandle->returnType, childExpHandle->returnID);
+        return childExpHandle;
     }
     else if(isChildrenMatchRule(nodeIndex, 5, IF, LP, EXP, RP, STMT))
     {
@@ -771,47 +752,21 @@ InterCodeHandle InterCodeGenerate_DefList(ParserNode_I nodeIndex){
 InterCodeHandle InterCodeGenerate_Def(ParserNode_I nodeIndex){
     if(isChildrenMatchRule(nodeIndex, 3, SPECIFIER, DEC_LIST, SEMI))
     {
-        SemanticInfo_t specifierInfo = GET_CHILD_NODE(nodeIndex, 0)->semanticInfo;
-        InterCodeInstruction instruction = {NULL, NULL, REQ_NO};
-        if(specifierInfo->valueType == SVT_Struct|| specifierInfo->valueType == SVT_Array)
-        {
-            instruction.specialRequest = REQ_ALLOC;
-            instruction.typeSize = SymbolValue_getSize(specifierInfo->valueType, specifierInfo->valueInfo);
-        }
-
-        InterCodeHandle childDecListHandle = InterCodeGenerate_DecList(GET_CHILD(nodeIndex, 1), &instruction);
-        return childDecListHandle;
+        return InterCodeGenerate_DecList(GET_CHILD(nodeIndex, 1));
     }
     return INVALID_INTERCODE_HANDLE;
 }
 
-InterCodeHandle InterCodeGenerate_DecList(ParserNode_I nodeIndex, InterCodeInstruction *superInstruction) {
+InterCodeHandle InterCodeGenerate_DecList(ParserNode_I nodeIndex) {
     if(isChildrenMatchRule(nodeIndex, 1, DEC))
     {
-        // allocate size if we need before analyze the DEC
-        InterCodeHandle handle = InterCodeHandle_create();
-        InterCodeHandle childDecHandle = InterCodeGenerate_Dec(GET_CHILD(nodeIndex, 0));
-        if(superInstruction->specialRequest == REQ_ALLOC)
-        {
-            InterCodeHandle_newCode(handle, IC_DEC, 2,
-                                    ICP_VAR, childDecHandle->returnID,
-                                    ICP_INT, superInstruction->typeSize);
-        }
-        return InterCodeHandle_merge(handle, childDecHandle);
+        return InterCodeGenerate_Dec(GET_CHILD(nodeIndex, 0));
     }
     else if(isChildrenMatchRule(nodeIndex, 3, DEC, COMMA, DEC_LIST))
     {
-        InterCodeHandle handle = InterCodeHandle_create();
         InterCodeHandle childDecHandle = InterCodeGenerate_Dec(GET_CHILD(nodeIndex, 0));
-        if(superInstruction->specialRequest == REQ_ALLOC)
-        {
-            InterCodeHandle_newCode(handle, IC_DEC, 2,
-                                    ICP_VAR, childDecHandle->returnID,
-                                    ICP_INT, superInstruction->typeSize);
-        }
-        handle = InterCodeHandle_merge(handle, childDecHandle);
-        InterCodeHandle childDecListHandle = InterCodeGenerate_DecList(GET_CHILD(nodeIndex, 2), superInstruction);
-        return InterCodeHandle_merge(handle, childDecListHandle);
+        InterCodeHandle childDecListHandle = InterCodeGenerate_DecList(GET_CHILD(nodeIndex, 2));
+        return InterCodeHandle_merge(childDecHandle, childDecListHandle);
     }
     return INVALID_INTERCODE_HANDLE;
 }
@@ -819,9 +774,6 @@ InterCodeHandle InterCodeGenerate_DecList(ParserNode_I nodeIndex, InterCodeInstr
 InterCodeHandle InterCodeGenerate_Dec(ParserNode_I nodeIndex){
     if(isChildrenMatchRule(nodeIndex, 1, VAR_DEC))
     {
-        // allocate new variable
-        // make no sense in intermediate code
-        // but above needs the return value to allocate space.
         return InterCodeGenerate_VarDec(GET_CHILD(nodeIndex, 0));
     }
     else if(isChildrenMatchRule(nodeIndex, 3, VAR_DEC, ASSIGNOP, EXP))
@@ -891,7 +843,7 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
                                     childExp2Handle->returnType, childExp2Handle->returnID);
         }
         int retValID = childExp1Handle->returnID;
-        InterCodeHandle retHandle = InterCodeHandle_merge(childExp1Handle, childExp2Handle);
+        InterCodeHandle retHandle = InterCodeHandle_merge(childExp2Handle, childExp1Handle);
         retHandle->returnID = retValID;
         retHandle->returnType = ICP_VAR;
         return retHandle;
@@ -967,9 +919,10 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
             InterCodeHandle_newCode(childExp2Handle, IC_GOTO, 1,
                                     ICP_LABEL, trueLabel);
         }
+        childExp2Handle = InterCodeHandle_merge(childExp1Handle, childExp2Handle);
         childExp2Handle->returnID = retVarID;
         childExp2Handle->returnType = ICP_VAR;
-        return InterCodeHandle_merge(childExp1Handle, childExp2Handle);
+        return childExp2Handle;
     }
     else if(isChildrenMatchRule(nodeIndex, 2, EXP, OR, EXP)){
         // we need to implement the short-circuit evaluation
@@ -1042,9 +995,10 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
             InterCodeHandle_newCode(childExp2Handle, IC_GOTO, 1,
                                     ICP_LABEL, falseLabel);
         }
+        childExp2Handle = InterCodeHandle_merge(childExp1Handle, childExp2Handle);
         childExp2Handle->returnID = retVarID;
         childExp2Handle->returnType = ICP_VAR;
-        return InterCodeHandle_merge(childExp1Handle, childExp2Handle);
+        return childExp2Handle;
     }
     else if(isChildrenMatchRule(nodeIndex, 3, EXP, EQ, EXP)){
         // code:
@@ -1110,9 +1064,10 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
             InterCodeHandle_newCode(childExp2Handle, IC_GOTO, 1,
                                     ICP_LABEL, falseLabel);
         }
+        childExp2Handle = InterCodeHandle_merge(childExp1Handle, childExp2Handle);
         childExp2Handle->returnID = retVarID;
         childExp2Handle->returnType = ICP_VAR;
-        return InterCodeHandle_merge(childExp1Handle, childExp2Handle);
+        return childExp2Handle;
     }
     else if(isChildrenMatchRule(nodeIndex, 3, EXP, NEQ, EXP)){
         // code:
@@ -1178,9 +1133,10 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
             InterCodeHandle_newCode(childExp2Handle, IC_GOTO, 1,
                                     ICP_LABEL, falseLabel);
         }
+        childExp2Handle = InterCodeHandle_merge(childExp1Handle, childExp2Handle);
         childExp2Handle->returnID = retVarID;
         childExp2Handle->returnType = ICP_VAR;
-        return InterCodeHandle_merge(childExp1Handle, childExp2Handle);
+        return childExp2Handle;
     }
     else if(isChildrenMatchRule(nodeIndex, 3, EXP, GE, EXP)){
         // code:
@@ -1246,9 +1202,10 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
             InterCodeHandle_newCode(childExp2Handle, IC_GOTO, 1,
                                     ICP_LABEL, falseLabel);
         }
+        childExp2Handle = InterCodeHandle_merge(childExp1Handle, childExp2Handle);
         childExp2Handle->returnID = retVarID;
         childExp2Handle->returnType = ICP_VAR;
-        return InterCodeHandle_merge(childExp1Handle, childExp2Handle);
+        return childExp2Handle;
     }
     else if(isChildrenMatchRule(nodeIndex, 3, EXP, GT, EXP)){
 // code:
@@ -1314,9 +1271,10 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
             InterCodeHandle_newCode(childExp2Handle, IC_GOTO, 1,
                                     ICP_LABEL, falseLabel);
         }
+        childExp2Handle = InterCodeHandle_merge(childExp1Handle, childExp2Handle);
         childExp2Handle->returnID = retVarID;
         childExp2Handle->returnType = ICP_VAR;
-        return InterCodeHandle_merge(childExp1Handle, childExp2Handle);
+        return childExp2Handle;
     }
     else if(isChildrenMatchRule(nodeIndex, 3, EXP, LE, EXP)){
 // code:
@@ -1382,9 +1340,10 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
             InterCodeHandle_newCode(childExp2Handle, IC_GOTO, 1,
                                     ICP_LABEL, falseLabel);
         }
+        childExp2Handle = InterCodeHandle_merge(childExp1Handle, childExp2Handle);
         childExp2Handle->returnID = retVarID;
         childExp2Handle->returnType = ICP_VAR;
-        return InterCodeHandle_merge(childExp1Handle, childExp2Handle);
+        return childExp2Handle;
     }
     else if(isChildrenMatchRule(nodeIndex, 3, EXP, LT, EXP)){
         // code:
@@ -1450,9 +1409,10 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
             InterCodeHandle_newCode(childExp2Handle, IC_GOTO, 1,
                                     ICP_LABEL, falseLabel);
         }
+        childExp2Handle = InterCodeHandle_merge(childExp1Handle, childExp2Handle);
         childExp2Handle->returnID = retVarID;
         childExp2Handle->returnType = ICP_VAR;
-        return InterCodeHandle_merge(childExp1Handle, childExp2Handle);
+        return childExp2Handle;
     }
     else if(isChildrenMatchRule(nodeIndex, 3, EXP, PLUS, EXP)){
         // easy
@@ -1468,9 +1428,10 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
                                 ICP_VAR, retVarID,
                                 childExp1Handle->returnType, childExp1Handle->returnID,
                                 childExp2Handle->returnType, childExp2Handle->returnID);
+        childExp2Handle = InterCodeHandle_merge(childExp1Handle, childExp2Handle);
         childExp2Handle->returnID = retVarID;
         childExp2Handle->returnType = ICP_VAR;
-        return InterCodeHandle_merge(childExp1Handle, childExp2Handle);
+        return childExp2Handle;
     }
     else if(isChildrenMatchRule(nodeIndex, 3, EXP, MINUS, EXP)){
         // easy
@@ -1486,9 +1447,10 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
                                 ICP_VAR, retVarID,
                                 childExp1Handle->returnType, childExp1Handle->returnID,
                                 childExp2Handle->returnType, childExp2Handle->returnID);
+        childExp2Handle = InterCodeHandle_merge(childExp1Handle, childExp2Handle);
         childExp2Handle->returnID = retVarID;
         childExp2Handle->returnType = ICP_VAR;
-        return InterCodeHandle_merge(childExp1Handle, childExp2Handle);
+        return childExp2Handle;
     }
     else if(isChildrenMatchRule(nodeIndex, 3, EXP, STAR, EXP)){
         // easy
@@ -1504,9 +1466,10 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
                                 ICP_VAR, retVarID,
                                 childExp1Handle->returnType, childExp1Handle->returnID,
                                 childExp2Handle->returnType, childExp2Handle->returnID);
+        childExp2Handle = InterCodeHandle_merge(childExp1Handle, childExp2Handle);
         childExp2Handle->returnID = retVarID;
         childExp2Handle->returnType = ICP_VAR;
-        return InterCodeHandle_merge(childExp1Handle, childExp2Handle);
+        return childExp2Handle;
     }
     else if(isChildrenMatchRule(nodeIndex, 3, EXP, DIV, EXP)){
         // easy
@@ -1522,9 +1485,10 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
                                 ICP_VAR, retVarID,
                                 childExp1Handle->returnType, childExp1Handle->returnID,
                                 childExp2Handle->returnType, childExp2Handle->returnID);
+        childExp2Handle = InterCodeHandle_merge(childExp1Handle, childExp2Handle);
         childExp2Handle->returnID = retVarID;
         childExp2Handle->returnType = ICP_VAR;
-        return InterCodeHandle_merge(childExp1Handle, childExp2Handle);
+        return childExp2Handle;
     }
     else if(isChildrenMatchRule(nodeIndex, 3, LP, EXP, RP)){
         // easy
@@ -1623,9 +1587,16 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
         // ret := CALL [function name]
         InterCodeHandle functionCallHandle = InterCodeHandle_create();
         int retVarID = SymbolTable_getNextVarID(symbolTable_IC);
-        InterCodeHandle_newCode(functionCallHandle, IC_CALL, 2,
-                                ICP_VAR, retVarID,
-                                ICP_LABEL, GET_NODE(GET_CHILD(nodeIndex, 0))->ID);
+        char *funcName = GET_NODE(GET_CHILD(nodeIndex, 0))->ID;
+        if (strcmp(funcName, "read") == 0) {
+            InterCodeHandle_newCode(functionCallHandle, IC_READ, 1,
+                                    ICP_VAR, retVarID);
+        }
+        else {
+            InterCodeHandle_newCode(functionCallHandle, IC_CALL, 2,
+                                    ICP_VAR, retVarID,
+                                    ICP_LABEL, funcName);
+        }
         functionCallHandle->returnID = retVarID;
         functionCallHandle->returnType = ICP_VAR;
         return functionCallHandle;
@@ -1636,19 +1607,35 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
         // codes:
         // [Args' code]
         // ret := CALL [function name]
-        InterCodeHandle childArgsHandle = InterCodeGenerate_Args(GET_CHILD(nodeIndex, 2));
+
+        char *funcName = GET_NODE(GET_CHILD(nodeIndex, 0))->ID;
+
         int retVarID = SymbolTable_getNextVarID(symbolTable_IC);
-        InterCodeHandle_newCode(childArgsHandle, IC_CALL, 2,
-                                ICP_VAR, retVarID,
-                                ICP_LABEL, GET_NODE(GET_CHILD(nodeIndex, 0))->ID);
-        childArgsHandle->returnID = retVarID;
-        childArgsHandle->returnType = ICP_VAR;
-        return childArgsHandle;
+        InterCodeHandle handle;
+        if (strcmp(funcName, "write") == 0) {
+            // ARGS->EXP
+            InterCodeInstruction instruction = {NULL, NULL, REQ_NO};
+            ParserNode_I expToWrite = GET_CHILD(GET_CHILD(nodeIndex, 2), 0);
+            InterCodeHandle childExpHandle = InterCodeGenerate_Exp(expToWrite, &instruction);
+            InterCodeHandle_newCode(childExpHandle, IC_WRITE, 1,
+                                    childExpHandle->returnType, childExpHandle->returnID);
+            handle = childExpHandle;
+        }
+        else {
+            InterCodeHandle childArgsHandle = InterCodeGenerate_Args(GET_CHILD(nodeIndex, 2));
+            InterCodeHandle_newCode(childArgsHandle, IC_CALL, 2,
+                                    ICP_VAR, retVarID,
+                                    ICP_LABEL, GET_NODE(GET_CHILD(nodeIndex, 0))->ID);
+            handle = childArgsHandle;
+        }
+        handle->returnID = retVarID;
+        handle->returnType = ICP_VAR;
+        return handle;
     }
     else if(isChildrenMatchRule(nodeIndex, 4, EXP, LB, EXP, RB)){
         // another offset calculation
         // just like the struct case
-        SymbolInfo_Array_t arrayInfo = GET_CHILD_NODE(nodeIndex, 0)->semanticInfo->valueInfo;
+        SymbolInfo_Array_t arrayInfo = GET_CHILD_NODE(nodeIndex, 0)->semanticInfo->valueTypeMeta;
         // we need the address of the array variable to get the member
         // construct a special request REQ_ADDRESS
         InterCodeInstruction instruction = {NULL, NULL, REQ_ADDRESS};
@@ -1701,7 +1688,7 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
             return childExpHandle_Index;
         }
     }
-    else if(isChildrenMatchRule(nodeIndex, 4, EXP, DOT, ID)){
+    else if(isChildrenMatchRule(nodeIndex, 3, EXP, DOT, ID)){
         // get struct info from semantic info
         // hmmm seems we can directly get the isDefined from semantic analyze.
         // wait seems we should calculate the size of struct and its member when we
@@ -1712,7 +1699,7 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
         // [MemberVar] := [AddrVar] + [Member's offset]
         // [retVal] := *[MemberVar]
 
-        SymbolInfo_Struct_t structInfo = GET_CHILD_NODE(nodeIndex, 0)->semanticInfo->valueInfo;
+        SymbolInfo_Struct_t structInfo = GET_CHILD_NODE(nodeIndex, 0)->semanticInfo->valueTypeMeta;
         // we need the address of the struct variable to get the member
         // construct a special request REQ_ADDRESS
         InterCodeInstruction instruction = {NULL, NULL, REQ_ADDRESS};
@@ -1764,16 +1751,16 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
         // we always return the value of the variable when it's an ID
         // there's more complex situation for param
         // the struct and array param will be referenced by address
-
-        SymbolInfo_Variable_t variableInfo = GET_CHILD_NODE(nodeIndex, 0)->semanticInfo->variableInfo;
-        if(variableInfo->bIsParam){
+        SemanticInfo_t variableSemanticInfo = GET_NODE(nodeIndex)->semanticInfo;
+        if(IS_VARIABLE_ID_A_PARAM_ID(variableSemanticInfo->varID)){
             InterCodeHandle handle = InterCodeHandle_create();
             handle->returnType = ICP_PARAM;
-            handle->returnID = variableInfo->varID;
+            handle->returnID = GET_VARIABLE_ID_FROM_PARAM_ID(variableSemanticInfo->varID);
             // get current FunctionInfo to check if it's a struct or array
             // if it is,
             // handle->specialReply = REP_IS_ADDRESS;
-            if(isParamAddressReferenced[variableInfo->varID-1]){
+            SymbolInfo_Function_t currentFunctionInfo = *(SymbolInfo_Function_t*) SimpleArray_back(currentFunctionInfoStack_IC);
+            if(InterCodeGenerator_Helper_isParamAddressReferenced(currentFunctionInfo, variableSemanticInfo->varID)){
                 handle->specialReply = REP_IS_ADDRESS;
             }
             return handle;
@@ -1781,7 +1768,8 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
         else{
             InterCodeHandle handle = InterCodeHandle_create();
             handle->returnType = ICP_VAR;
-            handle->returnID = variableInfo->varID;
+            handle->returnID = variableSemanticInfo->varID;
+            handle->specialReply = REP_NO;
             return handle;
         }
     }
@@ -1789,6 +1777,8 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
         InterCodeHandle handle = InterCodeHandle_create();
         handle->returnType = ICP_INT;
         handle->returnID = GET_CHILD_NODE(nodeIndex, 0)->intVal;
+        handle->specialReply = REP_NO;
+        return handle;
     }
     else if(isChildrenMatchRule(nodeIndex, 1, FLOAT)){
         reportErrorFormat(GET_NODE(nodeIndex)->lineNum, UNDEF_SEMANTIC_ERROR, "Float is not supported in intermediate code.");
@@ -1797,7 +1787,7 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
     return InterCodeHandle_create();
 }
 
-InterCodeHandle InterCodeGenerate_Args(ParserNode_I nodeIndex){
+InterCodeHandle InterCodeGenerate_Args(ParserNode_I nodeIndex) {
     if(isChildrenMatchRule(nodeIndex, 1, EXP))
     {
         // code:
