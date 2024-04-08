@@ -19,7 +19,7 @@ int semanticErrors = 0;
 SymbolTable_t symbolTable;
 SimpleArray_t semanticInfoList;
 
-SymbolInfo_Function_t currentFunctionInfo = NULL;
+SymbolInfo_Function_t currentFunctionInfoStack = NULL;
 SimpleArray_t currentStructInfoStack;
 SimpleArray_t currentType;
 SimpleArray_t currentTypeMeta;
@@ -82,11 +82,11 @@ int Analyze_Args(ParserNode_I nodeIndex);
  * @param functionInfo
  */
 void Analyze_pushCurrentFunctionInfo(SymbolInfo_Function_t functionInfo){
-    currentFunctionInfo = functionInfo;
+    currentFunctionInfoStack = functionInfo;
 }
 
 void Analyze_popCurrentFunctionInfo(){
-    currentFunctionInfo = NULL;
+    currentFunctionInfoStack = NULL;
 }
 
 /**
@@ -94,7 +94,7 @@ void Analyze_popCurrentFunctionInfo(){
  * @return the current function info.
  */
 SymbolInfo_Function_t Analyze_getCurrentFunctionInfo(){
-    return currentFunctionInfo;
+    return currentFunctionInfoStack;
 }
 
 /**
@@ -1166,7 +1166,7 @@ int Analyze_Exp(ParserNode_I nodeIndex){
         // Variable
         SymbolRecord_t record;
         SymbolDefineStatus defineStatus = SymbolTable_lookupRecord(symbolTable, GET_CHILD_NODE(nodeIndex, 0)->ID, &record);
-        if(defineStatus <= SDS_ExternalDefined){
+        if(defineStatus < SDS_ExternalDefined){
             // Error: Undefined variable, we assume it as an anonymous int variable
             //        which is defined in scope -1 (impossible to be found)
             reportErrorFormat(node->lineNum, UndefinedVariable, "Undefined variable \"%s\"", GET_CHILD_NODE(nodeIndex, 0)->ID);
