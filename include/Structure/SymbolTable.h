@@ -216,10 +216,28 @@ void SymbolTable_createFunctionByInfo(SymbolTable_t table, SymbolRecord *outReco
  */
 void SymbolTable_createStructByInfo(SymbolTable_t table, SymbolRecord *outRecord, SymbolInfo_t info);
 
+/**
+ * Generate a new variable ID.
+ * @param table The symbol table.
+ * @return The new variable ID.
+ */
 int SymbolTable_getNextVarID(SymbolTable_t table);
 
+/**
+ * Generate a new label name [ label$[ID]] ]
+ * @param table The symbol table.
+ * @param buffer The buffer to store the label name.
+ * @param bufferSize The size of the buffer.
+ */
 void SymbolTable_generateNextLabelName(SymbolTable_t table, char* buffer, int bufferSize);
 
+/**
+ * Generate a new label name with suffix [ label$[ID][suffix] ]
+ * @param table The symbol table.
+ * @param buffer The buffer to store the label name.
+ * @param bufferSize The size of the buffer.
+ * @param suffix The suffix to append to the label name.
+ */
 void SymbolTable_generateNextLabelNameWithSuffix(SymbolTable_t table, char* buffer, int bufferSize, char* suffix);
 
 ////////////////////////////////////////

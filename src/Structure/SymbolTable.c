@@ -502,7 +502,7 @@ void SymbolTable_generateNextLabelName(SymbolTable_t table, char* buffer, int bu
 }
 
 void SymbolTable_generateNextLabelNameWithSuffix(SymbolTable_t table, char* buffer, int bufferSize, char* suffix){
-    snprintf(buffer, bufferSize, "label#%d%s", table->nextLabelID++, suffix);
+    snprintf(buffer, bufferSize, "label$%d%s", table->nextLabelID++, suffix);
 }
 
 void SymbolInfo_Variable_printDebug(SymbolInfo_t variableInfo, char *buffer, int size) {
