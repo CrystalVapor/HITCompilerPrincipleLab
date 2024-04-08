@@ -1241,7 +1241,7 @@ void Analyze_Helper_operatorTwoParameters(ParserNode_I nodeIndex, ParserNode_t n
         //make an RValue from the first child's semantic info to let the analysis can continue
         node->semanticInfo = SemanticInfo_makeRvalue(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)), semanticInfoList);
     }else if(!SemanticInfo_checkValueType(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)),SVT_Int)
-             ||!SemanticInfo_checkValueType(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)),SVT_Float)){
+             &&!SemanticInfo_checkValueType(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)),SVT_Float)){
         reportErrorFormat(node->lineNum, OperatorTypeMismatch, "Operator type mismatch");
         //make an RValue from the first child's semantic info to let the analysis can continue
         node->semanticInfo = SemanticInfo_makeRvalue(GET_SEMANTIC_INFO(GET_CHILD(nodeIndex, 0)), semanticInfoList);
