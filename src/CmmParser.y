@@ -160,7 +160,7 @@ Stmt:
     |RETURN Exp SEMI            %prec pri2  {ParserNode_I children[3] = {$1, $2, $3}; $$ = newParserNode(STMT, NO_LINE_NUMBER, 3, children, INVALID_NODE_INDEX);}
     |IF LP Exp RP Stmt         %prec LELSE  {ParserNode_I children[5] = {$1, $2, $3, $4, $5}; $$ = newParserNode(STMT, NO_LINE_NUMBER, 5, children, INVALID_NODE_INDEX);}
     |IF LP Exp RP Stmt ELSE Stmt            {ParserNode_I children[7] = {$1, $2, $3, $4, $5, $6, $7}; $$ = newParserNode(STMT, NO_LINE_NUMBER, 7, children, INVALID_NODE_INDEX);}
-    |WHILE LP Exp RP Stmt                   {ParserNode_I children[5] = {$1, $2, $3, $4}; $$ = newParserNode(STMT, NO_LINE_NUMBER, 5, children, INVALID_NODE_INDEX);}
+    |WHILE LP Exp RP Stmt                   {ParserNode_I children[5] = {$1, $2, $3, $4, $5}; $$ = newParserNode(STMT, NO_LINE_NUMBER, 5, children, INVALID_NODE_INDEX);}
 
     |error SEMI                 %prec pri3  {yyerrok; reportError(yylineno, UnexpectedStatement, "Unexpected Statement");}
     ;
