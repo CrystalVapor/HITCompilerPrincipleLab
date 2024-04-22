@@ -2,9 +2,9 @@
 #define yyHEADER_H 1
 #define yyIN_HEADER 1
 
-#line 6 "/home/crystal/compilerPriciple/Lab1/include/CmmScanner.tab.h"
+#line 6 "/home/crystal/compilerPriciple/Lab/include/CmmScanner.tab.h"
 
-#line 8 "/home/crystal/compilerPriciple/Lab1/include/CmmScanner.tab.h"
+#line 8 "/home/crystal/compilerPriciple/Lab/include/CmmScanner.tab.h"
 
 #define  YY_INT_ALIGNED short int
 
@@ -577,9 +577,9 @@ extern int yylex (void);
 #undef yyTABLES_NAME
 #endif
 
-#line 140 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 140 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 
 
-#line 584 "/home/crystal/compilerPriciple/Lab1/include/CmmScanner.tab.h"
+#line 584 "/home/crystal/compilerPriciple/Lab/include/CmmScanner.tab.h"
 #undef yyIN_HEADER
 #endif /* yyHEADER_H */
