@@ -10,7 +10,7 @@ if [ ! -d testLab1 ]; then
     exit 1
 fi
 
-if [ ! -d test/output ]; then
+if [ ! -d testLab1/output ]; then
     mkdir testLab1/output
 fi
 
