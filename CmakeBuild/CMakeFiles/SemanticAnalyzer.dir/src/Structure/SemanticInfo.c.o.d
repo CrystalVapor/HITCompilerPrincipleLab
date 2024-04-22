@@ -1,10 +1,10 @@
 CMakeFiles/SemanticAnalyzer.dir/src/Structure/SemanticInfo.c.o: \
- /home/crystal/compilerPriciple/Lab1/src/Structure/SemanticInfo.c \
+ /home/crystal/compilerPriciple/Lab/src/Structure/SemanticInfo.c \
  /usr/include/stdc-predef.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SymbolTable.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SimpleArray.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SimpleHashTable.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SimpleHashTable.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/SymbolTable.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/SimpleArray.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/SimpleHashTable.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/SimpleHashTable.h \
  /usr/include/malloc.h /usr/include/features.h \
  /usr/include/features-time64.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
@@ -31,5 +31,5 @@ CMakeFiles/SemanticAnalyzer.dir/src/Structure/SemanticInfo.c.o: \
  /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
  /usr/include/strings.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SemanticInfo.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SymbolTable.h
+ /home/crystal/compilerPriciple/Lab/include/Structure/SemanticInfo.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/SymbolTable.h

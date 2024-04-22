@@ -1,7 +1,7 @@
 CMakeFiles/ErrorReporter.dir/src/ErrorReporter.c.o: \
- /home/crystal/compilerPriciple/Lab1/src/ErrorReporter.c \
+ /home/crystal/compilerPriciple/Lab/src/ErrorReporter.c \
  /usr/include/stdc-predef.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SimpleHashTable.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/SimpleHashTable.h \
  /usr/include/malloc.h /usr/include/features.h \
  /usr/include/features-time64.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
@@ -28,7 +28,7 @@ CMakeFiles/ErrorReporter.dir/src/ErrorReporter.c.o: \
  /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
  /usr/include/strings.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SimpleArray.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/SimpleArray.h \
  /usr/include/stdlib.h /usr/include/x86_64-linux-gnu/bits/waitflags.h \
  /usr/include/x86_64-linux-gnu/bits/waitstatus.h \
  /usr/include/x86_64-linux-gnu/sys/types.h \
@@ -54,4 +54,4 @@ CMakeFiles/ErrorReporter.dir/src/ErrorReporter.c.o: \
  /usr/include/x86_64-linux-gnu/bits/struct_mutex.h \
  /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h /usr/include/alloca.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
- /home/crystal/compilerPriciple/Lab1/include/ErrorReporter.h
+ /home/crystal/compilerPriciple/Lab/include/ErrorReporter.h

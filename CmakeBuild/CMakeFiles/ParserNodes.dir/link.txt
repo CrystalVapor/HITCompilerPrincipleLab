@@ -1,2 +1,0 @@
-/usr/bin/ar qc lib/libParserNodes.a CMakeFiles/ParserNodes.dir/src/Structure/ParserNodes.c.o CMakeFiles/ParserNodes.dir/src/Structure/TokenName.c.o
-/usr/bin/ranlib lib/libParserNodes.a

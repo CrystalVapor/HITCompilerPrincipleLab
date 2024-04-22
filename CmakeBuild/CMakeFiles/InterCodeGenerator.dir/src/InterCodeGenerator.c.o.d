@@ -1,11 +1,11 @@
 CMakeFiles/InterCodeGenerator.dir/src/InterCodeGenerator.c.o: \
- /home/crystal/compilerPriciple/Lab1/src/InterCodeGenerator.c \
+ /home/crystal/compilerPriciple/Lab/src/InterCodeGenerator.c \
  /usr/include/stdc-predef.h \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/stdarg.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/ParserNodes.h \
- /home/crystal/compilerPriciple/Lab1/include/CmmParserTypes.h \
- /home/crystal/compilerPriciple/Lab1/include/CmmParser.tab.h \
- /home/crystal/compilerPriciple/Lab1/include/CmmScanner.tab.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/ParserNodes.h \
+ /home/crystal/compilerPriciple/Lab/include/CmmParserTypes.h \
+ /home/crystal/compilerPriciple/Lab/include/CmmParser.tab.h \
+ /home/crystal/compilerPriciple/Lab/include/CmmScanner.tab.h \
  /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/features-time64.h \
@@ -69,18 +69,18 @@ CMakeFiles/InterCodeGenerator.dir/src/InterCodeGenerator.c.o: \
  /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
  /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
  /usr/include/x86_64-linux-gnu/bits/unistd_ext.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/TokenName.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SimpleArray.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SymbolTable.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SimpleArray.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SimpleHashTable.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SimpleHashTable.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/TokenName.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/SimpleArray.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/SymbolTable.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/SimpleArray.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/SimpleHashTable.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/SimpleHashTable.h \
  /usr/include/malloc.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SimpleList.h \
- /home/crystal/compilerPriciple/Lab1/include/ErrorReporter.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SemanticInfo.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SymbolTable.h \
- /home/crystal/compilerPriciple/Lab1/include/InterCodeGenerator.h \
- /home/crystal/compilerPriciple/Lab1/include/CmmParserTypes.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SimpleList.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SymbolTable.h
+ /home/crystal/compilerPriciple/Lab/include/Structure/SimpleList.h \
+ /home/crystal/compilerPriciple/Lab/include/ErrorReporter.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/SemanticInfo.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/SymbolTable.h \
+ /home/crystal/compilerPriciple/Lab/include/InterCodeGenerator.h \
+ /home/crystal/compilerPriciple/Lab/include/CmmParserTypes.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/SimpleList.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/SymbolTable.h

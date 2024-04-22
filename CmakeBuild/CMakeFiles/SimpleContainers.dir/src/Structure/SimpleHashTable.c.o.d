@@ -1,5 +1,5 @@
 CMakeFiles/SimpleContainers.dir/src/Structure/SimpleHashTable.c.o: \
- /home/crystal/compilerPriciple/Lab1/src/Structure/SimpleHashTable.c \
+ /home/crystal/compilerPriciple/Lab/src/Structure/SimpleHashTable.c \
  /usr/include/stdc-predef.h /usr/include/string.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/features-time64.h \
@@ -26,5 +26,5 @@ CMakeFiles/SimpleContainers.dir/src/Structure/SimpleHashTable.c.o: \
  /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
  /usr/include/x86_64-linux-gnu/bits/floatn.h \
  /usr/include/x86_64-linux-gnu/bits/floatn-common.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SimpleHashTable.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SimpleArray.h
+ /home/crystal/compilerPriciple/Lab/include/Structure/SimpleHashTable.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/SimpleArray.h

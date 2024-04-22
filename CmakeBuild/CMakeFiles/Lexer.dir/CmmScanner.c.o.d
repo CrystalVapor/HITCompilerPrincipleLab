@@ -1,5 +1,5 @@
 CMakeFiles/Lexer.dir/CmmScanner.c.o: \
- /home/crystal/compilerPriciple/Lab1/CmakeBuild/CmmScanner.c \
+ /home/crystal/compilerPriciple/Lab/CmakeBuild/CmmScanner.c \
  /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/features-time64.h \
@@ -58,12 +58,12 @@ CMakeFiles/Lexer.dir/CmmScanner.c.o: \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/stdint.h /usr/include/stdint.h \
  /usr/include/x86_64-linux-gnu/bits/wchar.h \
  /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
- /home/crystal/compilerPriciple/Lab1/include/CmmParserTypes.h \
- /home/crystal/compilerPriciple/Lab1/include/CmmParser.tab.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/TokenName.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SimpleArray.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/ParserNodes.h \
- /home/crystal/compilerPriciple/Lab1/include/ErrorReporter.h \
+ /home/crystal/compilerPriciple/Lab/include/CmmParserTypes.h \
+ /home/crystal/compilerPriciple/Lab/include/CmmParser.tab.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/TokenName.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/SimpleArray.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/ParserNodes.h \
+ /home/crystal/compilerPriciple/Lab/include/ErrorReporter.h \
  /usr/include/unistd.h /usr/include/x86_64-linux-gnu/bits/posix_opt.h \
  /usr/include/x86_64-linux-gnu/bits/environments.h \
  /usr/include/x86_64-linux-gnu/bits/confname.h \

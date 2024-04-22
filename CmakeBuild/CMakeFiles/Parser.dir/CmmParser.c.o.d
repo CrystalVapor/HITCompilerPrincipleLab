@@ -1,13 +1,13 @@
 CMakeFiles/Parser.dir/CmmParser.c.o: \
- /home/crystal/compilerPriciple/Lab1/CmakeBuild/CmmParser.c \
+ /home/crystal/compilerPriciple/Lab/CmakeBuild/CmmParser.c \
  /usr/include/stdc-predef.h \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h \
- /home/crystal/compilerPriciple/Lab1/include/CmmParserTypes.h \
- /home/crystal/compilerPriciple/Lab1/include/CmmParser.tab.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/TokenName.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SimpleArray.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/ParserNodes.h \
- /home/crystal/compilerPriciple/Lab1/include/ErrorReporter.h \
+ /home/crystal/compilerPriciple/Lab/include/CmmParserTypes.h \
+ /home/crystal/compilerPriciple/Lab/include/CmmParser.tab.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/TokenName.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/SimpleArray.h \
+ /home/crystal/compilerPriciple/Lab/include/Structure/ParserNodes.h \
+ /home/crystal/compilerPriciple/Lab/include/ErrorReporter.h \
  /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/features-time64.h \
@@ -30,4 +30,4 @@ CMakeFiles/Parser.dir/CmmParser.c.o: \
  /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
  /usr/include/x86_64-linux-gnu/bits/floatn.h \
  /usr/include/x86_64-linux-gnu/bits/floatn-common.h \
- /home/crystal/compilerPriciple/Lab1/include/CmmParser.tab.h
+ /home/crystal/compilerPriciple/Lab/include/CmmParser.tab.h

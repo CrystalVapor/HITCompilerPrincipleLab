@@ -1,5 +1,5 @@
 CMakeFiles/SimpleContainers.dir/src/Structure/SimpleList.c.o: \
- /home/crystal/compilerPriciple/Lab1/src/Structure/SimpleList.c \
+ /home/crystal/compilerPriciple/Lab/src/Structure/SimpleList.c \
  /usr/include/stdc-predef.h /usr/include/stdlib.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/features-time64.h \
@@ -40,4 +40,4 @@ CMakeFiles/SimpleContainers.dir/src/Structure/SimpleList.c.o: \
  /usr/include/x86_64-linux-gnu/bits/struct_mutex.h \
  /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h /usr/include/alloca.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SimpleList.h
+ /home/crystal/compilerPriciple/Lab/include/Structure/SimpleList.h

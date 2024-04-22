@@ -1,6 +1,6 @@
-#line 2 "/home/crystal/compilerPriciple/Lab1/CmakeBuild/CmmScanner.c"
+#line 2 "/home/crystal/compilerPriciple/Lab/CmakeBuild/CmmScanner.c"
 
-#line 4 "/home/crystal/compilerPriciple/Lab1/CmakeBuild/CmmScanner.c"
+#line 4 "/home/crystal/compilerPriciple/Lab/CmakeBuild/CmmScanner.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -519,20 +519,20 @@ static const YY_CHAR yy_meta[45] =
 
 static const flex_int16_t yy_base[124] =
     {   0,
-        0,    0,  280,  358,   43,   45,  253,  266,  358,  358,
-      358,   37,  358,   42,   45,   42,   50,   56,  358,  248,
-      242,  234,    0,  358,  358,  218,  216,   38,  215,  205,
-      210,  358,  194,  358,   74,  358,  358,   64,   73,   84,
-       87,   96,  358,  358,   99,  104,  110,  116,  220,  119,
-      149,  154,  358,  358,  358,    0,  178,  179,    0,  175,
-      170,  160,  160,  358,  157,  166,  169,  174,  180,  186,
-      189,  219,  224,  232,    0,   76,  122,  192,  240,  243,
-      248,  254,    0,  260,  148,  146,    0,  127,  122,  111,
-       73,   84,    0,  263,  280,  285,    0,  288,  297,  306,
+        0,    0,  269,  356,   43,   45,  246,  254,  356,  356,
+      356,  356,  356,   37,   40,   50,   45,   52,  356,  232,
+      231,  229,    0,  356,  356,  209,  208,   40,  210,  196,
+      198,  356,  171,  356,   70,  356,  356,   62,   71,   82,
+       85,   94,  356,  356,   97,  102,  108,  114,  201,  117,
+      147,  152,  356,  356,  356,    0,  174,  171,    0,  167,
+      166,  167,  162,  356,  155,  164,  167,  172,  178,  184,
+      187,  217,  222,  230,    0,   66,   74,  120,  238,  241,
+      246,  252,    0,  258,  161,  148,    0,  132,  125,  126,
+       82,   93,    0,  261,  278,  283,    0,  286,  295,  304,
 
-      117,    0,  100,   90,   94,   78,  309,    0,   71,   65,
-        0,    0,    0,  358,  337,  340,  342,  345,  348,   77,
-      351,  352,   59
+      116,    0,  103,  100,   96,   91,  307,    0,   71,   35,
+        0,    0,    0,  356,  335,  338,  340,  343,  346,   61,
+      349,  350,   46
     } ;
 
 static const flex_int16_t yy_def[124] =
@@ -553,102 +553,100 @@ static const flex_int16_t yy_def[124] =
       114,  114,  114
     } ;
 
-static const flex_int16_t yy_nxt[403] =
+static const flex_int16_t yy_nxt[401] =
     {   0,
         4,    5,    6,    7,    8,    9,   10,   11,   12,   13,
        14,   15,   16,   17,   18,   18,   19,   20,   21,   22,
        23,   23,   23,   23,   24,   25,   23,   23,   23,   26,
        27,   23,   28,   23,   23,   23,   29,   30,   23,   23,
-       31,   32,   33,   34,   35,   35,   35,   35,   38,   43,
-       39,   40,   40,   38,   44,   39,   40,   40,   41,   41,
-       41,   45,  108,   46,   47,   48,   42,   45,   59,   51,
-       51,   51,   60,   50,   42,   35,   35,   65,   65,   65,
-       78,  114,   49,  114,   67,   66,   68,   69,   70,  114,
-      114,  114,  114,   66,  114,   67,   71,   72,   72,   72,
+       31,   32,   33,   34,   35,   35,   35,   35,   38,  108,
+       39,   40,   40,   41,   41,   41,   45,   43,   46,   47,
+       48,   42,   44,   45,   78,   51,   51,   51,   50,   42,
+       59,   35,   35,  113,   60,   65,   65,   65,   49,  114,
+      114,  114,   67,   66,   68,   69,   70,   77,   77,   77,
+      114,   66,  114,   67,   71,   72,   72,   72,   41,   41,
 
-       41,   41,   41,  113,   74,  112,   74,  111,   42,   75,
-       75,   75,   77,   77,   77,   80,   42,   46,   46,   48,
-       79,   80,  110,   81,   81,   48,  109,   80,   79,   82,
-       82,   82,   83,   83,   83,   77,   77,   77,   87,   83,
-       83,   84,   84,   49,  106,   49,   83,   83,   83,   83,
-       84,   84,   84,   84,   84,   84,   84,   84,   84,   84,
-       45,  105,   51,   51,   51,  114,  104,   49,   49,   49,
-       65,   65,   65,  103,   91,   49,   91,  102,   66,   92,
-       92,   92,   93,   93,   93,   94,   66,   68,   68,   70,
-       79,   94,   90,   95,   95,   70,   89,   94,   79,   96,
+       41,  114,   74,  114,   74,  112,   42,   75,   75,   75,
+       77,   77,   77,   80,   42,   46,   46,   48,   79,   80,
+      111,   81,   81,   48,  110,   80,   79,   82,   82,   82,
+       83,   83,   83,  114,  114,  114,  109,   83,   83,   84,
+       84,   87,   49,   49,   83,   83,   83,   83,   84,   84,
+       84,   84,   84,   84,   84,   84,   84,   84,   45,  106,
+       51,   51,   51,  114,  105,   49,   49,   49,   65,   65,
+       65,  104,   91,   49,   91,  103,   66,   92,   92,   92,
+       93,   93,   93,   94,   66,   68,   68,   70,   79,   94,
+      102,   95,   95,   70,   90,   94,   79,   96,   96,   96,
 
-       96,   96,   97,   97,   97,  114,  114,  114,   88,   97,
-       97,   98,   98,   87,   86,   85,   97,   97,   97,   97,
-       98,   98,   98,   98,   98,   98,   98,   98,   98,   98,
-       67,  114,   72,   72,   72,  114,   64,  114,  114,  114,
-      114,   63,  114,   62,   61,   75,   75,   75,   74,   58,
-       74,   57,   55,   75,   75,   75,  100,  100,  100,   80,
-       54,   81,   81,   48,   42,   80,   53,   82,   82,   82,
-       37,   36,   42,  101,  101,  101,  107,  107,  107,  114,
-      101,  101,  114,  114,   42,  114,  114,  101,  101,  101,
-      101,   94,   42,   95,   95,   70,   94,  114,   96,   96,
+       97,   97,   97,   89,   88,   87,   86,   97,   97,   98,
+       98,   85,  114,   64,   97,   97,   97,   97,   98,   98,
+       98,   98,   98,   98,   98,   98,   98,   98,   67,   63,
+       72,   72,   72,  114,   62,  114,  114,  114,  114,   61,
+      114,   58,   57,   75,   75,   75,   74,   55,   74,   54,
+       53,   75,   75,   75,  100,  100,  100,   80,   37,   81,
+       81,   48,   42,   80,   36,   82,   82,   82,  114,  114,
+       42,  101,  101,  101,  107,  107,  107,  114,  101,  101,
+      114,  114,   42,  114,  114,  101,  101,  101,  101,   94,
+       42,   95,   95,   70,   94,  114,   96,   96,   96,  108,
 
-       96,  108,  108,  108,  114,  114,  114,  114,  108,  108,
-      114,  114,  114,  114,  114,  108,  108,  108,  108,  100,
-      100,  100,  107,  107,  107,  114,  114,   42,  114,  114,
-       42,  114,  114,  114,  114,   42,  114,  114,   42,   49,
-       49,   49,   52,   52,   52,   56,   56,   73,   73,   76,
-      114,   76,   99,  114,   99,  101,  101,    3,  114,  114,
+      108,  108,  114,  114,  114,  114,  108,  108,  114,  114,
+      114,  114,  114,  108,  108,  108,  108,  100,  100,  100,
+      107,  107,  107,  114,  114,   42,  114,  114,   42,  114,
+      114,  114,  114,   42,  114,  114,   42,   49,   49,   49,
+       52,   52,   52,   56,   56,   73,   73,   76,  114,   76,
+       99,  114,   99,  101,  101,    3,  114,  114,  114,  114,
       114,  114,  114,  114,  114,  114,  114,  114,  114,  114,
       114,  114,  114,  114,  114,  114,  114,  114,  114,  114,
       114,  114,  114,  114,  114,  114,  114,  114,  114,  114,
-      114,  114,  114,  114,  114,  114,  114,  114,  114,  114,
+      114,  114,  114,  114,  114,  114,  114,  114,  114,  114
 
-      114,  114
     } ;
 
-static const flex_int16_t yy_chk[403] =
+static const flex_int16_t yy_chk[401] =
     {   0,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    5,    5,    6,    6,   12,   16,
-       12,   12,   12,   14,   16,   14,   14,   14,   15,   15,
-       15,   17,  123,   17,   17,   17,   15,   18,   28,   18,
-       18,   18,   28,   17,   15,   35,   35,   38,   38,   38,
-      120,   91,   18,   91,   39,   38,   39,   39,   39,   76,
-       76,   76,   92,   38,   92,   40,   39,   40,   40,   40,
+        1,    1,    1,    1,    5,    5,    6,    6,   14,  123,
+       14,   14,   14,   15,   15,   15,   17,   16,   17,   17,
+       17,   15,   16,   18,  120,   18,   18,   18,   17,   15,
+       28,   35,   35,  110,   28,   38,   38,   38,   18,   76,
+       76,   76,   39,   38,   39,   39,   39,   77,   77,   77,
+       91,   38,   91,   40,   39,   40,   40,   40,   41,   41,
 
-       41,   41,   41,  110,   42,  109,   42,  106,   41,   42,
-       42,   42,   45,   45,   45,   46,   41,   46,   46,   46,
-       45,   47,  105,   47,   47,   47,  104,   48,   45,   48,
-       48,   48,   50,   50,   50,   77,   77,   77,  103,   50,
-       50,   50,   50,  101,   90,   50,   50,   50,   50,   50,
-       50,   50,   50,   50,   50,   50,   50,   50,   50,   50,
-       51,   89,   51,   51,   51,   52,   88,   52,   52,   52,
-       65,   65,   65,   86,   66,   51,   66,   85,   65,   66,
-       66,   66,   67,   67,   67,   68,   65,   68,   68,   68,
-       67,   69,   63,   69,   69,   69,   62,   70,   67,   70,
+       41,   92,   42,   92,   42,  109,   41,   42,   42,   42,
+       45,   45,   45,   46,   41,   46,   46,   46,   45,   47,
+      106,   47,   47,   47,  105,   48,   45,   48,   48,   48,
+       50,   50,   50,   78,   78,   78,  104,   50,   50,   50,
+       50,  103,  101,   50,   50,   50,   50,   50,   50,   50,
+       50,   50,   50,   50,   50,   50,   50,   50,   51,   90,
+       51,   51,   51,   52,   89,   52,   52,   52,   65,   65,
+       65,   88,   66,   51,   66,   86,   65,   66,   66,   66,
+       67,   67,   67,   68,   65,   68,   68,   68,   67,   69,
+       85,   69,   69,   69,   63,   70,   67,   70,   70,   70,
 
-       70,   70,   71,   71,   71,   78,   78,   78,   61,   71,
-       71,   71,   71,   60,   58,   57,   71,   71,   71,   71,
-       71,   71,   71,   71,   71,   71,   71,   71,   71,   71,
-       72,   49,   72,   72,   72,   73,   33,   73,   73,   73,
-       74,   31,   74,   30,   29,   74,   74,   74,   79,   27,
-       79,   26,   22,   79,   79,   79,   80,   80,   80,   81,
-       21,   81,   81,   81,   80,   82,   20,   82,   82,   82,
-        8,    7,   80,   84,   84,   84,   94,   94,   94,    3,
-       84,   84,    0,    0,   94,    0,    0,   84,   84,   84,
-       84,   95,   94,   95,   95,   95,   96,    0,   96,   96,
+       71,   71,   71,   62,   61,   60,   58,   71,   71,   71,
+       71,   57,   49,   33,   71,   71,   71,   71,   71,   71,
+       71,   71,   71,   71,   71,   71,   71,   71,   72,   31,
+       72,   72,   72,   73,   30,   73,   73,   73,   74,   29,
+       74,   27,   26,   74,   74,   74,   79,   22,   79,   21,
+       20,   79,   79,   79,   80,   80,   80,   81,    8,   81,
+       81,   81,   80,   82,    7,   82,   82,   82,    3,    0,
+       80,   84,   84,   84,   94,   94,   94,    0,   84,   84,
+        0,    0,   94,    0,    0,   84,   84,   84,   84,   95,
+       94,   95,   95,   95,   96,    0,   96,   96,   96,   98,
 
-       96,   98,   98,   98,    0,   99,    0,   99,   98,   98,
-       99,   99,   99,    0,    0,   98,   98,   98,   98,  100,
-      100,  100,  107,  107,  107,    0,    0,  100,    0,    0,
-      107,    0,    0,    0,    0,  100,    0,    0,  107,  115,
-      115,  115,  116,  116,  116,  117,  117,  118,  118,  119,
-        0,  119,  121,    0,  121,  122,  122,  114,  114,  114,
+       98,   98,    0,   99,    0,   99,   98,   98,   99,   99,
+       99,    0,    0,   98,   98,   98,   98,  100,  100,  100,
+      107,  107,  107,    0,    0,  100,    0,    0,  107,    0,
+        0,    0,    0,  100,    0,    0,  107,  115,  115,  115,
+      116,  116,  116,  117,  117,  118,  118,  119,    0,  119,
+      121,    0,  121,  122,  122,  114,  114,  114,  114,  114,
       114,  114,  114,  114,  114,  114,  114,  114,  114,  114,
       114,  114,  114,  114,  114,  114,  114,  114,  114,  114,
       114,  114,  114,  114,  114,  114,  114,  114,  114,  114,
-      114,  114,  114,  114,  114,  114,  114,  114,  114,  114,
+      114,  114,  114,  114,  114,  114,  114,  114,  114,  114
 
-      114,  114
     } ;
 
 /* Table of booleans, true if rule could match eol. */
@@ -680,16 +678,16 @@ static const flex_int16_t yy_rule_linenum[40] =
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
-#line 2 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 1 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
+#line 2 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 #define NOINCLUDE_CMM_SCANNER_TAB_H
 #include "CmmParserTypes.h"
 #include "Structure/ParserNodes.h"
 #include "ErrorReporter.h"
 #undef NOINCLUDE_CMM_SCANNER_TAB_H
 
-#line 692 "/home/crystal/compilerPriciple/Lab1/CmakeBuild/CmmScanner.c"
-#line 693 "/home/crystal/compilerPriciple/Lab1/CmakeBuild/CmmScanner.c"
+#line 690 "/home/crystal/compilerPriciple/Lab/CmakeBuild/CmmScanner.c"
+#line 691 "/home/crystal/compilerPriciple/Lab/CmakeBuild/CmmScanner.c"
 
 #define INITIAL 0
 
@@ -969,9 +967,9 @@ YY_DECL
 
 	{
 /* %% [7.0] user's declarations go here */
-#line 66 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 66 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 
-#line 975 "/home/crystal/compilerPriciple/Lab1/CmakeBuild/CmmScanner.c"
+#line 973 "/home/crystal/compilerPriciple/Lab/CmakeBuild/CmmScanner.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1006,7 +1004,7 @@ yy_match:
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
 			++yy_cp;
 			}
-		while ( yy_base[yy_current_state] != 358 );
+		while ( yy_base[yy_current_state] != 356 );
 
 yy_find_action:
 /* %% [10.0] code to find the action number goes here */
@@ -1063,12 +1061,12 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 67 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 67 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { while (input() != '\n'); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 68 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 68 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 {
     int c;
     // note that when input meets EOF, it will return 0, not EOF.(issue #2, CmmScanner.c, line 1751)
@@ -1097,196 +1095,196 @@ error_UC:
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 94 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 94 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(INT, yylineno, 0, NULL, INVALID_NODE_INDEX); return INT; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 95 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 95 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(FLOAT, yylineno, 0, NULL, INVALID_NODE_INDEX); return FLOAT; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 97 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 97 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(SEMI, yylineno, 0, NULL, INVALID_NODE_INDEX); return SEMI; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 98 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 98 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(COMMA, yylineno, 0, NULL, INVALID_NODE_INDEX); return COMMA; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 99 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 99 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(ASSIGNOP, yylineno, 0, NULL, INVALID_NODE_INDEX); return ASSIGNOP; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 100 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 100 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(PLUS, yylineno, 0, NULL, INVALID_NODE_INDEX); return PLUS; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 101 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 101 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(MINUS, yylineno, 0, NULL, INVALID_NODE_INDEX); return MINUS; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 102 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 102 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(STAR, yylineno, 0, NULL, INVALID_NODE_INDEX); return STAR; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 103 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 103 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(DIV, yylineno, 0, NULL, INVALID_NODE_INDEX); return DIV; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 104 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 104 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(AND, yylineno, 0, NULL, INVALID_NODE_INDEX); return AND; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 105 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 105 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(OR, yylineno, 0, NULL, INVALID_NODE_INDEX); return OR; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 106 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 106 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(DOT, yylineno, 0, NULL, INVALID_NODE_INDEX); return DOT; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 107 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 107 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(NOT, yylineno, 0, NULL, INVALID_NODE_INDEX); return NOT; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 108 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 108 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(TYPE, yylineno, 0, NULL, INVALID_NODE_INDEX); return TYPE; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 110 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 110 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(EQ, yylineno, 0, NULL, INVALID_NODE_INDEX); return EQ; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 111 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 111 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(NEQ, yylineno, 0, NULL, INVALID_NODE_INDEX); return NEQ; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 112 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 112 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(LE, yylineno, 0, NULL, INVALID_NODE_INDEX); return LE; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 113 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 113 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(LT, yylineno, 0, NULL, INVALID_NODE_INDEX); return LT; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 114 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 114 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(GE, yylineno, 0, NULL, INVALID_NODE_INDEX); return GE; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 115 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 115 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(GT, yylineno, 0, NULL, INVALID_NODE_INDEX); return GT; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 117 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 117 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(LP, yylineno, 0, NULL, INVALID_NODE_INDEX); return LP; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 118 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 118 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(RP, yylineno, 0, NULL, INVALID_NODE_INDEX); return RP; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 119 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 119 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(LB, yylineno, 0, NULL, INVALID_NODE_INDEX); return LB; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 120 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 120 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(RB, yylineno, 0, NULL, INVALID_NODE_INDEX); return RB; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 121 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 121 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(LC, yylineno, 0, NULL, INVALID_NODE_INDEX); return LC; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 122 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 122 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(RC, yylineno, 0, NULL, INVALID_NODE_INDEX); return RC; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 124 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 124 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(STRUCT, yylineno, 0, NULL, INVALID_NODE_INDEX); return STRUCT; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 125 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 125 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(RETURN, yylineno, 0, NULL, INVALID_NODE_INDEX); return RETURN; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 126 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 126 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(IF, yylineno, 0, NULL, INVALID_NODE_INDEX); return IF; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 127 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 127 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(ELSE, yylineno, 0, NULL, INVALID_NODE_INDEX); return ELSE; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 128 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 128 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(WHILE, yylineno, 0, NULL, INVALID_NODE_INDEX); return WHILE; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 130 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 130 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { yylval.nodeIndex = newParserNode(ID, yylineno, 0, NULL, INVALID_NODE_INDEX); return ID; }
 	YY_BREAK
 case 35:
 /* rule 35 can match eol */
 YY_RULE_SETUP
-#line 132 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 132 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 ;
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 134 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 134 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { reportErrorFormat(yylineno, InvalidNumber,"Invalid number \"%s\" ", yytext); return YYerror;}
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 135 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 135 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { reportErrorFormat(yylineno, InvalidFloat, "Invalid float \"%s\" ", yytext); return YYerror;}
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 136 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 136 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { reportErrorFormat(yylineno, InvalidIdentifier, "Invalid identifier \"%s\" ", yytext); return YYerror;}
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 139 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 139 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 { reportErrorFormat(yylineno, UnrecognizedCharacter, "Unrecognized character \"%s\" ", yytext); return YYerror;}
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 140 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 140 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 ECHO;
 	YY_BREAK
-#line 1290 "/home/crystal/compilerPriciple/Lab1/CmakeBuild/CmmScanner.c"
+#line 1288 "/home/crystal/compilerPriciple/Lab/CmakeBuild/CmmScanner.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2446,6 +2444,6 @@ void yyfree (void * ptr )
 
 /* %ok-for-header */
 
-#line 140 "/home/crystal/compilerPriciple/Lab1/src/CmmLexer.l"
+#line 140 "/home/crystal/compilerPriciple/Lab/src/CmmLexer.l"
 
 

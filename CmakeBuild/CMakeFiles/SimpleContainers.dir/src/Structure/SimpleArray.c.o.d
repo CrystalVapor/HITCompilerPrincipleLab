@@ -1,5 +1,5 @@
 CMakeFiles/SimpleContainers.dir/src/Structure/SimpleArray.c.o: \
- /home/crystal/compilerPriciple/Lab1/src/Structure/SimpleArray.c \
+ /home/crystal/compilerPriciple/Lab/src/Structure/SimpleArray.c \
  /usr/include/stdc-predef.h /usr/include/stdlib.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/features-time64.h \
@@ -43,4 +43,4 @@ CMakeFiles/SimpleContainers.dir/src/Structure/SimpleArray.c.o: \
  /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
  /usr/include/strings.h \
- /home/crystal/compilerPriciple/Lab1/include/Structure/SimpleArray.h
+ /home/crystal/compilerPriciple/Lab/include/Structure/SimpleArray.h

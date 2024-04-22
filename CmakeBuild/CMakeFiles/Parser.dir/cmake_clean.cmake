@@ -1,5 +1,5 @@
 file(REMOVE_RECURSE
-  "/home/crystal/compilerPriciple/Lab1/include/CmmParser.tab.h"
+  "../include/CmmParser.tab.h"
   "CMakeFiles/Parser.dir/CmmParser.c.o"
   "CMakeFiles/Parser.dir/CmmParser.c.o.d"
   "CmmParser.c"
