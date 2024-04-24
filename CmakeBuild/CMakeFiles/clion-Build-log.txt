@@ -1,7 +1,0 @@
-C:\Windows\system32\wsl.exe --distribution Ubuntu --exec "/mnt/c/Users/m1504/AppData/Local/Programs/CLion Nova/bin/ttyfix" /bin/bash -c "export CLION_IDE=TRUE && export CMAKE_COLOR_DIAGNOSTICS=ON && export JETBRAINS_IDE=TRUE && cd /home/crystal/compilerPriciple/Lab/CmakeBuild && /usr/bin/cmake -G 'CodeBlocks - Unix Makefiles' -S /home/crystal/compilerPriciple/Lab -B /home/crystal/compilerPriciple/Lab/CmakeBuild"
-CMake Error at CMakeLists.txt:27:
-  Parse error.  Function missing ending ")".  End of file reached.
-
-
--- Configuring incomplete, errors occurred!
-See also "/home/crystal/compilerPriciple/Lab/CmakeBuild/CMakeFiles/CMakeOutput.log".

@@ -1,1 +1,0 @@
-/usr/bin/cc CMakeFiles/Lab3.dir/src/Lab3.c.o -o ../crystal/Lab3  lib/libInterCodeGenerator.a lib/libSemanticAnalyzer.a lib/libParserAnalyzer.a lib/libParser.a lib/libLexer.a /usr/lib/x86_64-linux-gnu/libfl.so lib/libErrorReporter.a lib/libSimpleContainers.a 

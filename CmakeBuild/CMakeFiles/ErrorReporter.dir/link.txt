@@ -1,2 +1,0 @@
-/usr/bin/ar qc lib/libErrorReporter.a CMakeFiles/ErrorReporter.dir/src/ErrorReporter.c.o
-/usr/bin/ranlib lib/libErrorReporter.a
