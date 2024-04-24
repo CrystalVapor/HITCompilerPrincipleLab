@@ -1670,6 +1670,8 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
                                 ICP_VAR, elementAddrVarID,
                                 addrVarType, addrVarID,
                                 ICP_VAR, offsetVarID);
+        // issue#4 fix, forgot to merge the code
+        childExpHandle_Index = InterCodeHandle_merge(childExpHandle_Array, childExpHandle_Index);
         if(superInstruction->specialRequest == REQ_ADDRESS) {
             // this will be needed by nested struct or assign to member
             childExpHandle_Index->returnID = elementAddrVarID;
