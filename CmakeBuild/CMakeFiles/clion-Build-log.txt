@@ -1,12 +1,7 @@
 C:\Windows\system32\wsl.exe --distribution Ubuntu --exec "/mnt/c/Users/m1504/AppData/Local/Programs/CLion Nova/bin/ttyfix" /bin/bash -c "export CLION_IDE=TRUE && export CMAKE_COLOR_DIAGNOSTICS=ON && export JETBRAINS_IDE=TRUE && cd /home/crystal/compilerPriciple/Lab/CmakeBuild && /usr/bin/cmake -G 'CodeBlocks - Unix Makefiles' -S /home/crystal/compilerPriciple/Lab -B /home/crystal/compilerPriciple/Lab/CmakeBuild"
--- The C compiler identification is GNU 11.4.0
--- Detecting C compiler ABI info
--- Detecting C compiler ABI info - done
--- Check for working C compiler: /usr/bin/cc - skipped
--- Detecting C compile features
--- Detecting C compile features - done
--- Found FLEX: /usr/bin/flex (found version "2.6.4") 
--- Found BISON: /usr/bin/bison (found version "3.8.2") 
--- Configuring done
--- Generating done
--- Build files have been written to: /home/crystal/compilerPriciple/Lab/CmakeBuild
+CMake Error at CMakeLists.txt:27:
+  Parse error.  Function missing ending ")".  End of file reached.
+
+
+-- Configuring incomplete, errors occurred!
+See also "/home/crystal/compilerPriciple/Lab/CmakeBuild/CMakeFiles/CMakeOutput.log".

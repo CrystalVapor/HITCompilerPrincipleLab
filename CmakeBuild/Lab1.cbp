@@ -298,8 +298,8 @@
 				</MakeCommands>
 			</Target>
 			<Target title="Lab1">
-				<Option output="/home/crystal/compilerPriciple/Lab/CmakeBuild/Lab1" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="/home/crystal/compilerPriciple/Lab/CmakeBuild"/>
+				<Option output="/home/crystal/compilerPriciple/Lab/crystal/Lab1" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/crystal/compilerPriciple/Lab/crystal"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
 				<Option compiler="gcc"/>
@@ -318,8 +318,8 @@
 				</MakeCommands>
 			</Target>
 			<Target title="Lab1/fast">
-				<Option output="/home/crystal/compilerPriciple/Lab/CmakeBuild/Lab1" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="/home/crystal/compilerPriciple/Lab/CmakeBuild"/>
+				<Option output="/home/crystal/compilerPriciple/Lab/crystal/Lab1" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/crystal/compilerPriciple/Lab/crystal"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
 				<Option compiler="gcc"/>
@@ -338,8 +338,8 @@
 				</MakeCommands>
 			</Target>
 			<Target title="Lab2">
-				<Option output="/home/crystal/compilerPriciple/Lab/CmakeBuild/Lab2" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="/home/crystal/compilerPriciple/Lab/CmakeBuild"/>
+				<Option output="/home/crystal/compilerPriciple/Lab/crystal/Lab2" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/crystal/compilerPriciple/Lab/crystal"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
 				<Option compiler="gcc"/>
@@ -358,8 +358,8 @@
 				</MakeCommands>
 			</Target>
 			<Target title="Lab2/fast">
-				<Option output="/home/crystal/compilerPriciple/Lab/CmakeBuild/Lab2" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="/home/crystal/compilerPriciple/Lab/CmakeBuild"/>
+				<Option output="/home/crystal/compilerPriciple/Lab/crystal/Lab2" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/crystal/compilerPriciple/Lab/crystal"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
 				<Option compiler="gcc"/>
@@ -378,8 +378,8 @@
 				</MakeCommands>
 			</Target>
 			<Target title="Lab3">
-				<Option output="/home/crystal/compilerPriciple/Lab/CmakeBuild/Lab3" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="/home/crystal/compilerPriciple/Lab/CmakeBuild"/>
+				<Option output="/home/crystal/compilerPriciple/Lab/crystal/Lab3" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/crystal/compilerPriciple/Lab/crystal"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
 				<Option compiler="gcc"/>
@@ -398,8 +398,8 @@
 				</MakeCommands>
 			</Target>
 			<Target title="Lab3/fast">
-				<Option output="/home/crystal/compilerPriciple/Lab/CmakeBuild/Lab3" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="/home/crystal/compilerPriciple/Lab/CmakeBuild"/>
+				<Option output="/home/crystal/compilerPriciple/Lab/crystal/Lab3" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/crystal/compilerPriciple/Lab/crystal"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
 				<Option compiler="gcc"/>

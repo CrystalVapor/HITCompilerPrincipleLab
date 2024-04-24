@@ -18,6 +18,6 @@ echo  "---------------------------------"
 for file in testLab3/*.cmm
 do
     echo "Testing $file"
-    ./Lab3 $file > "testLab3/output/${file#testLab3/}.pst"
+    ./Lab3 $file > "testLab3/output/${file#testLab3/}.ir"
     echo "---------------------------------"
 done

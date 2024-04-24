@@ -1,8 +1,8 @@
 file(REMOVE_RECURSE
+  "../crystal/Lab1"
+  "../crystal/Lab1.pdb"
   "CMakeFiles/Lab1.dir/src/Lab1.c.o"
   "CMakeFiles/Lab1.dir/src/Lab1.c.o.d"
-  "Lab1"
-  "Lab1.pdb"
 )
 
 # Per-language clean rules from dependency scanning.
