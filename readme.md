@@ -11,11 +11,11 @@
 - `src/CmmParser.y` 语法分析器
 - `src/ErrorReporter.c` 错误报告器，使用散列表实现
 - `src/SemanticAnalyzer.c` 语义分析器，在遍历语法树的基础上进行语义检查
-- `src/InterCodeGenerator.c` 中间代码生成器，生成三地址码，手动实现了虚表和多态(只是为了好玩)(WIP)
+- `src/InterCodeGenerator.c` 中间代码生成器，生成三地址码，手动实现了虚表和多态(只是为了好玩)
 - `src/Structure/SimpleArray.c` 用于管理树节点，以及为高级数据结构提供基础的的简易动态数组
 - `src/Structure/SimpleHashTable.c` 用于管理符号表和错误报告的简易哈希表
 - `src/Structure/TokenName.c` 用于从符号枚举值获取符号名
-- `src/Structure/SymbolTable.c` 符号表相关实现，支持了一套动态内存管理的符号表，含有已弃用代码
+- `src/Structure/SymbolTable.c` 符号表相关实现，支持了一套动态内存管理的符号表
 - `src/Structure/ParserNodes.c` 语法树节点，使用动态数组实现
 - `src/Structure/SemanticInfo.c` 语义信息，用于在语义节点中提供综合属性
 - `Lab1.c` 实验一主程序，包含了词法分析器和语法分析器的调用
@@ -27,42 +27,44 @@
 
 ## 项目编译
 
-从主目录下：
+首先切换到项目主目录（即CMakeLists.txt所在目录）
+选定一个你喜欢的cmake构建目录名，此处以Cmake为例
 
-Lab1:
 ```bash
-cd CmakeBuild
-make Lab1
+mkdir Cmake
+cd Cmake
+cmake ..
 ```
 
-Lab2:
+cmake将创建所有所需make文件，如果你需要对项目进行debug，在cmake生成make文件时需要指定debug参数:
+
 ```bash
-cd CmakeBuild
-make Lab2
+cmake -DCMAKE_BUILD_TYPE=Debug ..
 ```
 
-Lab3:
+在执行cmake指令后，你就可以在Cmake文件夹下使用make指令构建项目目标，使用指令
+
 ```bash
-cd CmakeBuild
-make Lab3
+make all
 ```
 
-项目中的cmake文件已经配置好，可以直接使用cmake进行编译，如果相关文件损坏，请使用：
-```bash
-cmake CmakeBuild
-```
-修复相关make文件
+以一次性构建Lab1-3的文件
+你也可以指定性的构建Lab1-3中的任意一个，只需要将`all`替换成`Lab1`, `Lab2`, `Lab3`中的任意一个即可
 
-如果未安装cmake，可以直接使用make命令进行编译
+项目的执行文件将生成在 `./crystal` 目录下。
 
 ## 项目测试
 
-项目已在CmakeBuild目录下提供测试脚本，可执行`LabXBatchTest.sh`测试实验X，相关样例在`testLabX`目录下
+项目已在`./crystal`目录下提供测试脚本，可执行`LabXBatchTest.sh`测试实验X，相关样例在`testLabX`目录下
 
-当执行脚本时，实验一的树节点输出会被重定向到`testLab1/output/[caseName].pst`
+当执行脚本时:
+
+实验一的树节点输出会被重定向到`testLab1/output/[caseName].pst`
 报错信息将打印到屏幕中。
 
-也可以单独执行`./Lab1 [filename]`进行测试
+实验三的中间代码生成输出会被重定向到`testLab3/output/[caseName].ir`
+
+也可以单独执行`./LabX [filename]`进行测试
 
 ## 项目测试环境
 

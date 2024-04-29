@@ -1,2 +1,0 @@
-/usr/bin/ar qc lib/libInterCodeGenerator.a CMakeFiles/InterCodeGenerator.dir/src/InterCodeGenerator.c.o
-/usr/bin/ranlib lib/libInterCodeGenerator.a
