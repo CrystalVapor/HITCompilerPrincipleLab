@@ -1494,8 +1494,7 @@ InterCodeHandle InterCodeGenerate_Exp(ParserNode_I nodeIndex, InterCodeInstructi
         // easy
         // this only make sense when we are doing syntax analyze
         // just return the result of EXP
-        InterCodeInstruction instruction = {NULL, NULL, REQ_NO};
-        return InterCodeGenerate_Exp(GET_CHILD(nodeIndex, 1), &instruction);
+        return InterCodeGenerate_Exp(GET_CHILD(nodeIndex, 1), superInstruction);
     }
     else if(isChildrenMatchRule(nodeIndex, 2, MINUS, EXP)){
         // easy
